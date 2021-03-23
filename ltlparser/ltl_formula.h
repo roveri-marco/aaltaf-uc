@@ -1,4 +1,4 @@
-/* 
+/*
  * 定义LTL Formula结构
  * File:   ltl_formula.h
  * Author: yaoyinbo
@@ -49,19 +49,26 @@ extern "C"
     char *_var;
   } ltl_formula;
 
+  typedef struct _ltl_formulas {
+    unsigned int size;
+    unsigned int maxsize;
+    ltl_formula ** formulas;
+    ltl_formula ** names;
+  } ltl_formulas;
+
   /**
    * 构建变量表达式
    * @param var 变量名
-   * @return 
+   * @return
    */
   ltl_formula *create_var (const char *var);
 
   /**
    * 构建操作表达式
-   * @param type 
+   * @param type
    * @param left
    * @param right
-   * @return 
+   * @return
    */
   ltl_formula *create_operation (EOperationType type, ltl_formula *left, ltl_formula *right);
 
@@ -84,9 +91,11 @@ extern "C"
    */
   void destroy_node (ltl_formula *node);
 
+  ltl_formulas * allocate_ltl_formulas(unsigned int init);
+  void push_ltlformula(ltl_formulas * self,
+		       ltl_formula * name, ltl_formula * formula);
 #ifdef	__cplusplus
 }
 #endif
 
 #endif	/* LTL_FORMULA_H */
-

@@ -1,4 +1,4 @@
-/* 
+/*
  * 实现LTL Formula相关函数
  * File:   ltl_formula.c
  * Author: yaoyinbo
@@ -14,7 +14,7 @@
 
 /**
  * 动态申请Expression类型
- * @return 
+ * @return
  */
 static ltl_formula *
 allocate_ltl ()
@@ -33,10 +33,12 @@ allocate_ltl ()
   return ret;
 }
 
+
+
 /**
  * 动态申请字符串并赋值
  * @param str
- * @return 
+ * @return
  */
 static char *
 allocate_cstr (const char *str)
@@ -54,10 +56,32 @@ allocate_cstr (const char *str)
   return s;
 }
 
+ltl_formulas * allocate_ltl_formulas(unsigned int init) {
+  ltl_formulas * res = (ltl_formulas *) malloc(sizeof *res);
+  res->maxsize = init;
+  res->size = 0;
+  res->formulas = (ltl_formula **) malloc(sizeof(ltl_formula *) * init);
+  res->names = (ltl_formula **) malloc(sizeof(ltl_formula *) * init);
+}
+
+void push_ltlformula(ltl_formulas * self,
+		     ltl_formula * name, ltl_formula * formula) {
+  self->size++;
+  if (self->size >= self->maxsize) {
+    self->maxsize += 50;
+    self->formulas = (ltl_formula **) realloc(self->formulas,
+					      sizeof(ltl_formula *) * self->maxsize);
+    self->names = (ltl_formula **) realloc(self->names,
+					   sizeof(ltl_formula *) * self->maxsize);
+  }
+  self->formulas[self->size-1] = formula;
+  self->names[self->size-1] = name;
+}
+
 /**
  * 构建变量表达式
  * @param var 变量名
- * @return 
+ * @return
  */
 ltl_formula *
 create_var (const char *var)
@@ -72,10 +96,10 @@ create_var (const char *var)
 
 /**
  * 构建操作表达式
- * @param type 
+ * @param type
  * @param left
  * @param right
- * @return 
+ * @return
  */
 ltl_formula *
 create_operation (EOperationType type, ltl_formula *left, ltl_formula *right)

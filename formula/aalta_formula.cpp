@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   aalta_formula.cpp
  * Author: yaoyinbo
- * 
+ *
  * Created on October 21, 2013, 12:32 PM
  */
 
@@ -62,7 +62,7 @@ aalta_formula::FALSE ()
 /**
  * 获取符号对应名称或变量id对应的变量名
  * @param index
- * @return 
+ * @return
  */
 std::string
 aalta_formula::get_name (int index)
@@ -99,14 +99,14 @@ aalta_formula::destroy ()
   _FALSE = NULL;
 }
 
-void 
+void
 aalta_formula::print_all_formulas ()
 {
 
   afp_set::iterator it;
   for (it = all_afs.begin (); it != all_afs.end (); it ++)
     printf ("%s : address=%p\n", (*it)->to_string ().c_str (), (*it));
-    
+
 }
 
 /**
@@ -114,7 +114,7 @@ aalta_formula::print_all_formulas ()
  * @param af
  * @param pos
  * @param neg
- * @return 
+ * @return
  */
 bool
 aalta_formula::mutex (aalta_formula *af, int_set& pos, int_set& neg)
@@ -144,7 +144,7 @@ aalta_formula::mutex (aalta_formula *af, int_set& pos, int_set& neg)
  * 判两个公式是否冲突
  * @param af1
  * @param af2
- * @return 
+ * @return
  */
 bool
 aalta_formula::is_conflict (aalta_formula *af1, aalta_formula *af2)
@@ -289,7 +289,7 @@ aalta_formula::is_conflict (aalta_formula *af1, aalta_formula *af2)
 /**
  * 对 (X a) 做化简
  * @param af
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::simplify_next (aalta_formula *af)
@@ -315,7 +315,7 @@ aalta_formula::simplify_next (aalta_formula *af)
  * 对 (l | r) 做化简
  * @param l
  * @param r
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::simplify_or (aalta_formula *l, aalta_formula *r)
@@ -410,7 +410,7 @@ aalta_formula::simplify_or (aalta_formula *l, aalta_formula *r)
  * 对 (l & r) 做化简，其中l和r未化简
  * @param l
  * @param r
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::simplify_and (aalta_formula *l, aalta_formula *r)
@@ -485,7 +485,7 @@ aalta_formula::simplify_and (aalta_formula *l, aalta_formula *r)
  * 对 (l & r) 做化简，其中l和r已化简
  * @param l
  * @param r
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::simplify_and_weak (aalta_formula *l, aalta_formula *r)
@@ -566,7 +566,7 @@ aalta_formula::simplify_and_weak (aalta_formula *l, aalta_formula *r)
  * 合并两个formula而不做化简
  * @param af1
  * @param af2
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::merge_and (aalta_formula* af1, aalta_formula* af2)
@@ -628,7 +628,7 @@ aalta_formula::merge_and (aalta_formula* af1, aalta_formula* af2)
  * 对 (l U r) 做化简
  * @param l
  * @param r
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::simplify_until (aalta_formula *l, aalta_formula *r)
@@ -663,7 +663,7 @@ aalta_formula::simplify_until (aalta_formula *l, aalta_formula *r)
  * 对 (l R r) 做化简
  * @param l
  * @param r
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::simplify_release (aalta_formula *l, aalta_formula *r)
@@ -737,12 +737,12 @@ aalta_formula::clc_hash ()
   _hash = (_hash << 5) ^ (_hash >> 27) ^ _op;
   //_hash = (_hash << 5) ^ (_hash >> 27) ^ (size_t) _left;
   //_hash = (_hash << 5) ^ (_hash >> 27) ^ (size_t) _right;
-  
+
   if (_left != NULL)
     _hash = (_hash << 5) ^ (_hash >> 27) ^ _left->_hash;
   if (_right != NULL)
     _hash = (_hash << 5) ^ (_hash >> 27) ^ _right->_hash;
-  
+
   _hash = (_hash << 5) ^ (_hash >> 27) ^ (size_t) _tag;
 
 }
@@ -838,19 +838,19 @@ aalta_formula::aalta_formula (int op, aalta_formula *left, aalta_formula *right,
     clc_hash ();
   }
   */
-  
+
   //_left = left == NULL ? NULL : left->unique ();
    // _right = right == NULL ? NULL : right->unique ();
    if (left == NULL)
      _left = NULL;
-   else 
+   else
      _left = left->unique ();
    if (right == NULL)
      _right = NULL;
    else
      _right = right->unique ();
     clc_hash ();
-  
+
 }
 
 aalta_formula::aalta_formula (const char *input, bool is_ltlf)
@@ -870,6 +870,23 @@ aalta_formula::aalta_formula (const char *input, bool is_ltlf)
   //*this = *classify ();
 }
 
+aalta_formula::aalta_formula(FILE *input, bool is_ltlf)
+{
+  init ();
+  ltl_formula *formula = getASTF(input);
+  if (is_ltlf)
+    build(formula, false, true);
+  else
+    build(formula);
+  destroy_formula(formula);
+  clc_hash();
+  /*
+  if(!is_ltlf)
+    *this = *simplify ();
+  */
+  //*this = *classify ();
+}
+
 aalta_formula::aalta_formula (const ltl_formula *formula, bool is_not, bool is_ltlf)
 {
   init ();
@@ -881,7 +898,7 @@ aalta_formula::aalta_formula (unsigned index)
 {
   init ();
   std::string str = std::string ("var") + convert_to_string (index);
-  
+
   int id;
   hash_map<std::string, int>::const_iterator it = ids.find (str);
   if (it == ids.end ())
@@ -895,7 +912,7 @@ aalta_formula::aalta_formula (unsigned index)
       id = it->second;
     }
   _op = id;
-  
+
   _left = NULL;
   _right = NULL;
   clc_hash ();
@@ -903,7 +920,7 @@ aalta_formula::aalta_formula (unsigned index)
 
 aalta_formula::~aalta_formula () { }
 
-aalta_formula * 
+aalta_formula *
 aalta_formula::nnf ()
 {
   aalta_formula *result, *l, *r;
@@ -927,7 +944,7 @@ aalta_formula::nnf ()
   return result;
 }
 
-aalta_formula* 
+aalta_formula*
 aalta_formula::nnf_not ()
 {
   aalta_formula *result, *l, *r;
@@ -980,7 +997,7 @@ aalta_formula::nnf_not ()
 /**
  * 重载赋值操作符
  * @param af
- * @return 
+ * @return
  */
 aalta_formula& aalta_formula::operator = (const aalta_formula& af)
 {
@@ -1001,7 +1018,7 @@ aalta_formula& aalta_formula::operator = (const aalta_formula& af)
 /**
  * 重载等于符号
  * @param af
- * @return 
+ * @return
  */
 bool aalta_formula::operator == (const aalta_formula& af) const
 {
@@ -1012,7 +1029,7 @@ bool aalta_formula::operator == (const aalta_formula& af) const
 /**
  * 重载小于号，stl_map中用
  * @param af
- * @return 
+ * @return
  */
 bool aalta_formula::operator< (const aalta_formula& af) const
 {
@@ -1211,7 +1228,7 @@ aalta_formula::classify (tag_t *tag)
  * 简化并规划公式，简化的公式不包含tag信息
  * 使得And和Or的结构为链状结构而非树结构
  * 只修改this中的_simp值
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::simplify ()
@@ -1281,7 +1298,7 @@ aalta_formula::split (int op, std::list<aalta_formula *>& af_list, bool to_simpl
  * @param op
  * @param pos
  * @param neg
- * @return 
+ * @return
  */
 bool
 aalta_formula::mutex (int op, int_set& pos, int_set& neg)
@@ -1305,7 +1322,7 @@ aalta_formula::mutex (int op, int_set& pos, int_set& neg)
  * @param pos 位置信息
  * @param op 当前公式的操作符
  * @param af
- * @return 
+ * @return
  */
 bool
 aalta_formula::contain (poskind pos, int op, aalta_formula *af)
@@ -1334,7 +1351,7 @@ aalta_formula::contain (poskind pos, int op, aalta_formula *af)
  * @param pos2
  * @param op2
  * @param af
- * @return 
+ * @return
  */
 bool
 aalta_formula::contain (poskind pos1, int op1, poskind pos2, int op2, aalta_formula *af)
@@ -1357,7 +1374,7 @@ aalta_formula::contain (poskind pos1, int op1, poskind pos2, int op2, aalta_form
 
 /**
  * 获取op操作符
- * @return 
+ * @return
  */
 int
 aalta_formula::oper () const
@@ -1367,7 +1384,7 @@ aalta_formula::oper () const
 
 /**
  * 获取left节点
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::l_af () const
@@ -1377,7 +1394,7 @@ aalta_formula::l_af () const
 
 /**
  * 获取right节点
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::r_af () const
@@ -1387,7 +1404,7 @@ aalta_formula::r_af () const
 
 /**
  * 获取公式长度
- * @return 
+ * @return
  */
 int
 aalta_formula::get_length ()
@@ -1404,7 +1421,7 @@ aalta_formula::get_length ()
 /**
  * 介于aalta_formula中对于与或的存储，若为与或，返回左节点, 为当前节点
  * @param op
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::af_now (int op)
@@ -1417,7 +1434,7 @@ aalta_formula::af_now (int op)
 /**
  * 介于aalta_formula中对于与或的存储，若为与或，返回右节点, 为下一个节点
  * @param op
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::af_next (int op) const
@@ -1429,7 +1446,7 @@ aalta_formula::af_next (int op) const
 
 /**
  * 判是否为future
- * @return 
+ * @return
  */
 //@ TODO: 倒是变成inline看看啊。。。
 
@@ -1441,7 +1458,7 @@ aalta_formula::is_future () const
 
 /**
  * 判是否为globally
- * @return 
+ * @return
  */
 //@ TODO: 倒是变成inline看看啊。。。
 
@@ -1451,7 +1468,7 @@ aalta_formula::is_globally () const
   return _op == Release && _left->_op == False;
 }
 
-bool 
+bool
 aalta_formula::is_until () const
 {
   if (_op == Until && _left->_op != True)
@@ -1463,7 +1480,7 @@ aalta_formula::is_until () const
   return false;
 }
 
-bool 
+bool
 aalta_formula::is_next () const
 {
   if (_op == Next)
@@ -1478,7 +1495,7 @@ aalta_formula::is_next () const
 
 /**
  * 判公式中没有release算子
- * @return 
+ * @return
  */
 bool
 aalta_formula::release_free () const
@@ -1494,7 +1511,7 @@ aalta_formula::release_free () const
 
 /**
  * 克隆出该对象的副本（需要在外部显式delete）
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::clone () const
@@ -1513,7 +1530,7 @@ int aalta_formula::_max_id = 1;
 
 /**
  * 返回该aalta_formula对应的唯一指针
- * @return 
+ * @return
  */
 aalta_formula *
 aalta_formula::unique ()
@@ -1525,11 +1542,11 @@ aalta_formula::unique ()
         _unique = (*iter);
       else
         {
-        
+
           _unique = clone ();
           _unique->_id = _max_id ++;
           all_afs.insert (_unique);
-          
+
           //all_afs.insert (_unique = clone ());
           _unique->_unique = _unique;
         }
@@ -1547,7 +1564,7 @@ aalta_formula::unique ()
 
 /**
  * 以逆波兰形式输出
- * @return 
+ * @return
  */
 std::string
 aalta_formula::to_RPN () const
@@ -1561,7 +1578,7 @@ aalta_formula::to_RPN () const
 
 /**
  * To String
- * @return 
+ * @return
  */
 std::string
 aalta_formula::to_string () const
@@ -1590,7 +1607,7 @@ aalta_formula* aalta_formula::add_tail ()
 	{
 		if (_left != NULL)
 			l = _left->add_tail ();
-		else 
+		else
 			l = NULL;
 		if (_right != NULL)
 			r = _right->add_tail ();
@@ -1602,7 +1619,7 @@ aalta_formula* aalta_formula::add_tail ()
 }
 
 
-aalta_formula* 
+aalta_formula*
 aalta_formula::split_next ()
 {
 	aalta_formula *l, *r, *res;
@@ -1642,10 +1659,10 @@ aalta_formula::split_next ()
 	return res;
 }
 
-aalta_formula* 
+aalta_formula*
 aalta_formula::remove_wnext ()
 {
-	
+
 	aalta_formula *res, *l, *r;
 	// N f <-> Tail | X f
 	if (oper () == WNext)
@@ -1655,7 +1672,7 @@ aalta_formula::remove_wnext ()
 		aalta_formula* nf = aalta_formula (Next, NULL, r).unique ();
 		res = aalta_formula (Or, tail, nf).unique ();
 	}
-	else 
+	else
 	{
 		if (_left != NULL)
 			l = _left->remove_wnext ();
@@ -1671,7 +1688,7 @@ aalta_formula::remove_wnext ()
 }
 
 aalta_formula* aalta_formula::TAIL_ = NULL;
-aalta_formula* 
+aalta_formula*
 aalta_formula::TAIL ()
 {
 	if (TAIL_ == NULL)
@@ -1701,7 +1718,7 @@ aalta_formula::is_global()
   return false;
 }
 
-bool 
+bool
 aalta_formula::is_wnext_free()
 {
   if(oper() == WNext)
@@ -1778,7 +1795,7 @@ aalta_formula::off()
       result = this;
       break;
   }
-  
+
   return result->simplify();
 }
 
@@ -1850,7 +1867,7 @@ aalta_formula::cf()
     case Next:
       result = TRUE();
       break;
-    
+
     case Until:
       f1 = _left->cf ();
       f2 = _right->cf ();
@@ -1865,7 +1882,7 @@ aalta_formula::cf()
       else
         result = aalta_formula(Or, f1, f2).unique();
       break;
-    
+
     case Release:
       result = _right->cf ();
       break;
@@ -1880,14 +1897,14 @@ aalta_formula::cf()
   return result;
 }
 
-bool 
+bool
 aalta_formula::model(aalta_formula *af)
 {
   af_prt_set P = af->to_set();
   return model(P);
 }
 
-bool 
+bool
 aalta_formula::model(af_prt_set P)
 {
   switch(oper())
@@ -1933,7 +1950,7 @@ aalta_formula::progf(af_prt_set P)
     case False:
       result = this;
       break;
-    case Or:  
+    case Or:
       l = _left->progf(P);
       r = _right->progf(P);
       if(l == r)
@@ -1946,7 +1963,7 @@ aalta_formula::progf(af_prt_set P)
         result = r;
       else if (r == FALSE ())
         result = l;
-      else 
+      else
         result = aalta_formula(Or, l, r).unique();
       break;
     case And:
@@ -1962,7 +1979,7 @@ aalta_formula::progf(af_prt_set P)
         result = l;
       else if (r == FALSE ())
         result = r;
-      else 
+      else
         result = aalta_formula(And, l, r).unique();
       break;
     case Next:
@@ -2008,14 +2025,14 @@ aalta_formula::progf(af_prt_set P)
         result = l;
       else if (r == FALSE ())
         result = r;
-      else 
+      else
         result = aalta_formula (And, r, l).unique ();
-        
+
       break;
     case Undefined:
       printf ("aalta_formula::progf: Undefined types!\n");
       exit (0);
-      
+
     default:
       if(P.find(this) != P.end())
         result = TRUE();
@@ -2029,7 +2046,7 @@ aalta_formula::progf(af_prt_set P)
 hash_map<aalta_formula*, aalta_formula *, aalta_formula::af_prt_hash> aalta_formula::_until_map;
 hash_map<aalta_formula*, aalta_formula *, aalta_formula::af_prt_hash> aalta_formula::_var_until_map;
 
-aalta_formula* 
+aalta_formula*
 aalta_formula::get_var ()
 {
   if (oper () != Until)
@@ -2051,7 +2068,7 @@ aalta_formula::get_var ()
   return NULL;
 }
 
-aalta_formula* 
+aalta_formula*
 aalta_formula::get_until ()
 {
   hash_map<aalta_formula*, aalta_formula*, af_prt_hash>::iterator it;
@@ -2066,7 +2083,7 @@ aalta_formula::get_until ()
   return NULL;
 }
 
-aalta_formula* 
+aalta_formula*
 aalta_formula::mark_until ()
 {
   if (oper () != Until)
@@ -2103,7 +2120,7 @@ aalta_formula::mark_until ()
   return result;
 }
 
-bool 
+bool
 aalta_formula::model_until (aalta_formula::af_prt_set P)
 {
   hash_map<aalta_formula*, aalta_formula *, af_prt_hash>::iterator it;
@@ -2118,7 +2135,7 @@ aalta_formula::model_until (aalta_formula::af_prt_set P)
       }
       if (P.find (it->second) != P.end ())
         return true;
-      else 
+      else
         return false;
     case Release:
       return true;
@@ -2134,7 +2151,7 @@ aalta_formula::model_until (aalta_formula::af_prt_set P)
   return false;
 }
 
-aalta_formula::af_prt_set 
+aalta_formula::af_prt_set
 aalta_formula::get_until_flags ()
 {
   aalta_formula::af_prt_set result, P;
@@ -2157,7 +2174,7 @@ aalta_formula::get_until_flags ()
   return result;
 }
 
-aalta_formula* 
+aalta_formula*
 aalta_formula::normal ()
 {
   aalta_formula *result = NULL, *f1 = NULL, *f2 = NULL;
@@ -2188,7 +2205,7 @@ aalta_formula::normal ()
   return result;
 }
 
-bool 
+bool
 aalta_formula::is_until_marked ()
 {
   if (oper () <= Undefined)
@@ -2200,7 +2217,7 @@ aalta_formula::is_until_marked ()
     return false;
 }
 
-aalta_formula* 
+aalta_formula*
 aalta_formula::flatted ()
 {
   aalta_formula *result, *l, *r, *nx, *until, *not_until;
@@ -2213,7 +2230,7 @@ aalta_formula::flatted ()
         l = until;
       else if (l != FALSE ())
         l = aalta_formula (And, until, l).unique ();
-        
+
       r = _left->flatted ();
       not_until = aalta_formula (Not, NULL, until).unique ();
       if (r == TRUE ())
@@ -2223,7 +2240,7 @@ aalta_formula::flatted ()
       nx = aalta_formula (Next, NULL, this).unique ();
       if (r != FALSE ())
         r = aalta_formula (And, r, nx).unique ();
-        
+
       if (l == TRUE ())
         result = l;
       else if (l == FALSE ())
@@ -2243,7 +2260,7 @@ aalta_formula::flatted ()
         r = nx;
       else if (r != TRUE ())
         r = aalta_formula (Or, r, nx).unique ();
-        
+
       if (l == TRUE ())
         result = r;
       else if (l == FALSE ())
@@ -2289,7 +2306,7 @@ aalta_formula::flatted ()
   return result;
 }
 
-bool 
+bool
 aalta_formula::contain (af_prt_set P1, af_prt_set P2)
 {
   af_prt_set::iterator it;
@@ -2304,19 +2321,19 @@ aalta_formula::contain (af_prt_set P1, af_prt_set P2)
 
 int aalta_formula::_sat_count = 0;
 
-void 
+void
 aalta_formula::print_sat_count ()
 {
   printf ("Total SAT invoking: %d\n", _sat_count);
 }
 
-aalta_formula::af_prt_set 
+aalta_formula::af_prt_set
 aalta_formula::SAT()    //true or false cannot be the input!!!
 {
   //assert (_op != True);
   //assert (_op != False);
   af_prt_set P;
-  
+
   //Be careful when the formula is true or false
   if (_op == True)
   {
@@ -2342,10 +2359,10 @@ aalta_formula::SAT()    //true or false cannot be the input!!!
   else
     return SAT_core ();
   */
-  
+
   return SAT_core ();
-   
-  
+
+
 }
 
 aalta_formula*
@@ -2376,7 +2393,7 @@ aalta_formula::erase_next_global (aalta_formula::af_prt_set& P)
   }
 }
 
-aalta_formula::af_prt_set 
+aalta_formula::af_prt_set
 aalta_formula::SAT_core()
 {
   af_prt_set P;
@@ -2384,7 +2401,7 @@ aalta_formula::SAT_core()
   int_prt_map prop_map;
   int var_num;
   Minisat::Solver S;
-  
+
   /*
   std::vector<std::vector<int> > cls = toDIMACS (prop_map);
   int var;
@@ -2394,7 +2411,7 @@ aalta_formula::SAT_core()
     for (int j = 0; j < cls[i].size (); j ++)
     {
       //printf ("%d ", cls[i][j]);
-      assert (cls[i][j] != 0); 
+      assert (cls[i][j] != 0);
       var = abs(cls[i][j])-1;
       while (var >= S.nVars()) S.newVar();
       if (cls[i][j] > 0)
@@ -2405,14 +2422,14 @@ aalta_formula::SAT_core()
     //printf ("\n");
     S.addClause_(lits);
   */
-  
-  
+
+
   int cls[MAX_CL][3];
   int cls_num = 0;
   toDIMACS (prop_map, cls, cls_num);
-  
+
   //printf ("SAT formula is\n%s\n", to_string().c_str ());
-  
+
   int var;
   for (int i = 0; i < cls_num; i ++)
   {
@@ -2420,7 +2437,7 @@ aalta_formula::SAT_core()
     for (int j = 0; j < 3; j ++)
     {
       //printf ("%d ", cls[i][j]);
-      if (cls[i][j] == 0)   break; 
+      if (cls[i][j] == 0)   break;
       var = abs(cls[i][j])-1;
       while (var >= S.nVars()) S.newVar();
       if (cls[i][j] > 0)
@@ -2431,8 +2448,8 @@ aalta_formula::SAT_core()
     //printf ("\n");
     S.addClause_(lits);
   }
-  
-  
+
+
   if (!S.simplify())
   {
     return P;             //false
@@ -2440,7 +2457,7 @@ aalta_formula::SAT_core()
   Minisat::vec<Minisat::Lit> dummy;
   Minisat::lbool ret;
   ret = S.solveLimited(dummy);
-  
+
   //handle the result from Minisat
   if(ret == l_True)
   {
@@ -2460,11 +2477,11 @@ aalta_formula::SAT_core()
 
     }
   }
- 
+
   return P;
 }
 
-void 
+void
 aalta_formula::toDIMACS(int_prt_map& prop_map, int (&cls)[MAX_CL][3], int& cls_num)
 {
   int var_num = 1;
@@ -2504,13 +2521,13 @@ aalta_formula::toDIMACS(int_prt_map& prop_map, int (&cls)[MAX_CL][3], int& cls_n
       cls[cls_num][1] = 0;
       cls_num ++;
     }
-    
+
     plus(prop_map, int_map, var_num, cl_num, 1, cls, cls_num);
 
   }
 }
 
-std::vector<std::vector<int> > 
+std::vector<std::vector<int> >
 aalta_formula::toDIMACS(int_prt_map& prop_map)
 {
   std::vector<std::vector<int> > res;
@@ -2555,7 +2572,7 @@ aalta_formula::toDIMACS(int_prt_map& prop_map)
       lits.push_back (1);
       res.push_back (lits);
     }
-    
+
     plus(prop_map, int_map, var_num, cl_num, 1, res);
     /*
     if (oper () == Not)
@@ -2568,7 +2585,7 @@ aalta_formula::toDIMACS(int_prt_map& prop_map)
   }
 }
 
-int 
+int
 aalta_formula::search(aalta_formula af, af_int_map& int_map, int& var_num)
 {
   int result;
@@ -2585,10 +2602,10 @@ aalta_formula::search(aalta_formula af, af_int_map& int_map, int& var_num)
   return result;
 }
 
-void 
+void
 aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, int& cl_num, int cur, int (&cls)[MAX_CL][3], int &cls_num)
 {
-  
+
   int findex, f1index, f2index;
   findex = cur;
   //std::string result = "";
@@ -2628,7 +2645,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
           prop_map[f1index] = _left;
           break;
       }
-      
+
       switch (_right->oper ())
       {
         case Not:
@@ -2656,21 +2673,21 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
           prop_map[f2index] = _right;
           break;
       }
-      
-      //result = convert_to_string(-findex) + " " + convert_to_string(f1index) + " 0\n" 
+
+      //result = convert_to_string(-findex) + " " + convert_to_string(f1index) + " 0\n"
       //         + convert_to_string(-findex) + " " + convert_to_string(f2index) + " 0\n";
       cls[cls_num][0] = -findex;
       cls[cls_num][1] = f1index;
       cls[cls_num][2] = 0;
       cls_num ++;
       assert (cls_num < MAX_CL);
-      
+
       cls[cls_num][0] = -findex;
       cls[cls_num][1] = f2index;
       cls[cls_num][2] = 0;
       cls_num ++;
       assert (cls_num < MAX_CL);
-      
+
       /*
       int ints[] = {-findex, f1index};
       std::vector<int> lits (ints, ints + sizeof (ints)/sizeof (int));
@@ -2683,14 +2700,14 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
       //lits2.push_back (f2index);
       res.push_back (lits2);
       */
-      
+
       cl_num += 2;
       //result += _left->plus (prop_map, int_map, var_num, cl_num, f1index);
       //result += _right->plus (prop_map, int_map, var_num, cl_num, f2index);
       _left->plus (prop_map, int_map, var_num, cl_num, f1index, cls, cls_num);
       _right->plus (prop_map, int_map, var_num, cl_num, f2index, cls, cls_num);
       break;
-    }  
+    }
     case Or:
     {
       switch (_left->oper ())
@@ -2719,7 +2736,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
           prop_map[f1index] = _left;
           break;
       }
-      
+
       switch (_right->oper ())
       {
         case Not:
@@ -2747,7 +2764,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
           prop_map[f2index] = _right;
           break;
       }
-      
+
       //result = convert_to_string(-findex) + " " + convert_to_string(f1index) + " "
       //         + convert_to_string(f2index) + " 0\n" ;
       cls[cls_num][0] = -findex;
@@ -2755,7 +2772,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
       cls[cls_num][2] = f2index;
       cls_num ++;
       assert (cls_num < MAX_CL);
-      
+
       /*
       int ints[] = {-findex, f1index, f2index};
       std::vector<int> lits (ints, ints + sizeof (ints)/sizeof (int));
@@ -2764,7 +2781,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
       //lits.push_back (f2index);
       res.push_back (lits);
       */
-      
+
       cl_num += 1;
       //result += _left->plus (prop_map, int_map, var_num, cl_num, f1index);
       //result += _right->plus (prop_map, int_map, var_num, cl_num, f2index);
@@ -2774,13 +2791,13 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
     }
     default:
       break;
-      
+
   }
   //return result;
 }
 
-//std::string 
-void 
+//std::string
+void
 aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, int& cl_num, int cur, int (&cls)[MAX_CL][3], int &cls_num)
 {
   int findex, f1index, f2index;
@@ -2822,7 +2839,7 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
           f1index = -f1index;
           break;
       }
-      
+
       switch (_right->oper ())
       {
         case Not:
@@ -2852,16 +2869,16 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
           f2index = -f2index;
           break;
       }
-      
+
       //result = convert_to_string(-findex) + " " + convert_to_string(f1index) + " "
       //         + convert_to_string(f2index) + " 0\n" ;
-      
+
       cls[cls_num][0] = -findex;
       cls[cls_num][1] = f1index;
       cls[cls_num][2] = f2index;
       cls_num ++;
       assert (cls_num < MAX_CL);
-      
+
       /*
       int ints[] = {-findex, f1index, f2index};
       std::vector<int> lits (ints, ints + sizeof (ints)/sizeof (int));
@@ -2870,14 +2887,14 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
       //lits.push_back (f2index);
       res.push_back (lits);
       */
-      
+
       cl_num += 1;
       //result += _left->minus (prop_map, int_map, var_num, cl_num, f1index);
       //result += _right->minus (prop_map, int_map, var_num, cl_num, f2index);
       _left->minus (prop_map, int_map, var_num, cl_num, f1index, cls, cls_num);
       _right->minus (prop_map, int_map, var_num, cl_num, f2index, cls, cls_num);
       break;
-    }  
+    }
     case Or:
     {
       switch (_left->oper ())
@@ -2908,7 +2925,7 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
           f1index = -f1index;
           break;
       }
-      
+
       switch (_right->oper ())
       {
         case Not:
@@ -2938,25 +2955,25 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
           f2index = -f2index;
           break;
       }
-      
+
       cls[cls_num][0] = -findex;
       cls[cls_num][1] = -f1index;
       cls[cls_num][2] = f2index;
       cls_num ++;
       assert (cls_num < MAX_CL);
-      
+
       cls[cls_num][0] = -findex;
       cls[cls_num][1] = f1index;
       cls[cls_num][2] = -f2index;
       cls_num ++;
       assert (cls_num < MAX_CL);
-      
+
       cls[cls_num][0] = -findex;
       cls[cls_num][1] = f1index;
       cls[cls_num][2] = f2index;
       cls_num ++;
       assert (cls_num < MAX_CL);
-      
+
       /*
       int ints[] = {-findex, -f1index, f2index};
       std::vector<int> lits (ints, ints + sizeof (ints)/sizeof (int));
@@ -2977,7 +2994,7 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
       //lits3.push_back (f2index);
       res.push_back (lits3);
       */
-       
+
       cl_num += 3;
       //result += _left->minus (prop_map, int_map, var_num, cl_num, f1index);
       //result += _right->minus (prop_map, int_map, var_num, cl_num, f2index);
@@ -2987,16 +3004,16 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
     }
     default:
       break;
-      
+
   }
   //return result;
 }
 
 
-void 
+void
 aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, int& cl_num, int cur, std::vector<std::vector<int> >& res)
 {
-  
+
   int findex, f1index, f2index;
   findex = cur;
   //std::string result = "";
@@ -3036,7 +3053,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
           prop_map[f1index] = _left;
           break;
       }
-      
+
       switch (_right->oper ())
       {
         case Not:
@@ -3064,8 +3081,8 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
           prop_map[f2index] = _right;
           break;
       }
-      
-      //result = convert_to_string(-findex) + " " + convert_to_string(f1index) + " 0\n" 
+
+      //result = convert_to_string(-findex) + " " + convert_to_string(f1index) + " 0\n"
       //         + convert_to_string(-findex) + " " + convert_to_string(f2index) + " 0\n";
       int ints[] = {-findex, f1index};
       std::vector<int> lits (ints, ints + sizeof (ints)/sizeof (int));
@@ -3077,14 +3094,14 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
       //lits2.push_back (-findex);
       //lits2.push_back (f2index);
       res.push_back (lits2);
-      
+
       cl_num += 2;
       //result += _left->plus (prop_map, int_map, var_num, cl_num, f1index);
       //result += _right->plus (prop_map, int_map, var_num, cl_num, f2index);
       _left->plus (prop_map, int_map, var_num, cl_num, f1index, res);
       _right->plus (prop_map, int_map, var_num, cl_num, f2index, res);
       break;
-    }  
+    }
     case Or:
     {
       switch (_left->oper ())
@@ -3113,7 +3130,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
           prop_map[f1index] = _left;
           break;
       }
-      
+
       switch (_right->oper ())
       {
         case Not:
@@ -3141,7 +3158,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
           prop_map[f2index] = _right;
           break;
       }
-      
+
       //result = convert_to_string(-findex) + " " + convert_to_string(f1index) + " "
       //         + convert_to_string(f2index) + " 0\n" ;
       int ints[] = {-findex, f1index, f2index};
@@ -3150,7 +3167,7 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
       //lits.push_back (f1index);
       //lits.push_back (f2index);
       res.push_back (lits);
-      
+
       cl_num += 1;
       //result += _left->plus (prop_map, int_map, var_num, cl_num, f1index);
       //result += _right->plus (prop_map, int_map, var_num, cl_num, f2index);
@@ -3160,13 +3177,13 @@ aalta_formula::plus(int_prt_map& prop_map, af_int_map& int_map, int& var_num, in
     }
     default:
       break;
-      
+
   }
   //return result;
 }
 
-//std::string 
-void 
+//std::string
+void
 aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, int& cl_num, int cur, std::vector<std::vector<int> >& res)
 {
   int findex, f1index, f2index;
@@ -3208,7 +3225,7 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
           f1index = -f1index;
           break;
       }
-      
+
       switch (_right->oper ())
       {
         case Not:
@@ -3238,7 +3255,7 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
           f2index = -f2index;
           break;
       }
-      
+
       //result = convert_to_string(-findex) + " " + convert_to_string(f1index) + " "
       //         + convert_to_string(f2index) + " 0\n" ;
       int ints[] = {-findex, f1index, f2index};
@@ -3247,14 +3264,14 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
       //lits.push_back (f1index);
       //lits.push_back (f2index);
       res.push_back (lits);
-      
+
       cl_num += 1;
       //result += _left->minus (prop_map, int_map, var_num, cl_num, f1index);
       //result += _right->minus (prop_map, int_map, var_num, cl_num, f2index);
       _left->minus (prop_map, int_map, var_num, cl_num, f1index, res);
       _right->minus (prop_map, int_map, var_num, cl_num, f2index, res);
       break;
-    }  
+    }
     case Or:
     {
       switch (_left->oper ())
@@ -3285,7 +3302,7 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
           f1index = -f1index;
           break;
       }
-      
+
       switch (_right->oper ())
       {
         case Not:
@@ -3315,7 +3332,7 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
           f2index = -f2index;
           break;
       }
-      
+
       //result = convert_to_string(-findex) + " " + convert_to_string(-f1index) + " "
       //         + convert_to_string(f2index) + " 0\n" ;
       //result += convert_to_string(-findex) + " " + convert_to_string(f1index) + " "
@@ -3340,7 +3357,7 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
       //lits3.push_back (f1index);
       //lits3.push_back (f2index);
       res.push_back (lits3);
-             
+
       cl_num += 3;
       //result += _left->minus (prop_map, int_map, var_num, cl_num, f1index);
       //result += _right->minus (prop_map, int_map, var_num, cl_num, f2index);
@@ -3350,18 +3367,18 @@ aalta_formula::minus (int_prt_map& prop_map, af_int_map& int_map, int& var_num, 
     }
     default:
       break;
-      
+
   }
   //return result;
 }
 
-aalta_formula::af_prt_set 
+aalta_formula::af_prt_set
 aalta_formula::get_prop(std::string dimacs, int_prt_map prop_map)
 {
   af_prt_set result;
   std::string line;
   int val;
-  
+
   aalta_formula* f;
   std::vector<std::string> strs;
   ifstream fileout;
@@ -3420,7 +3437,7 @@ aalta_formula::get_prop(std::string dimacs, int_prt_map prop_map)
   return result;
 }
 
-bool 
+bool
 aalta_formula::find (aalta_formula *f)
 {
   switch (oper ())
@@ -3452,7 +3469,7 @@ aalta_formula::af_prt_set aalta_formula::to_or_set ()
 	return res;
 }
 
-void 
+void
 aalta_formula::to_set (af_prt_set & result)
 {
   if(oper() != And)
@@ -3466,7 +3483,7 @@ aalta_formula::to_set (af_prt_set & result)
   }
 }
 
-aalta_formula::af_prt_set 
+aalta_formula::af_prt_set
 aalta_formula::to_set()
 {
   af_prt_set result;
@@ -3491,7 +3508,7 @@ aalta_formula::to_set()
   */
 }
 
-hash_set<aalta_formula*> 
+hash_set<aalta_formula*>
 aalta_formula::and_to_set()
 {
   hash_set<aalta_formula*> result, result1, result2;
@@ -3511,7 +3528,7 @@ aalta_formula::and_to_set()
   return result;
 }
 
-aalta_formula::af_prt_set 
+aalta_formula::af_prt_set
 aalta_formula::get_alphabet()
 {
   af_prt_set result, P;
@@ -3543,9 +3560,9 @@ aalta_formula::get_alphabet()
   /*
   int size = names.size();
   if(size < Undefined + 2)
-  { 
+  {
     cout << "error! Cannot find atoms!" << endl;
-    exit(0); 
+    exit(0);
   }
   for(int i = Undefined + 1; i < size; i++)
   {
@@ -3559,16 +3576,16 @@ aalta_formula::get_alphabet()
   */
 }
 
-bool 
+bool
 aalta_formula::find_prop_atom (aalta_formula *f)
 {
   if (oper () == And || oper () == Or)
     return _left->find_prop_atom (f) || _right->find_prop_atom (f);
-  else 
+  else
     return (this == f);
 }
 
-void 
+void
 aalta_formula::complete (af_prt_set& P)
 {
   std::vector<aalta_formula*> vec;
@@ -3620,43 +3637,43 @@ aalta_formula::complete (af_prt_set& P)
   P.insert (alp.begin (), alp.end ());
 }
 
-std::string 
+std::string
 aalta_formula::ltlf2ltl()
 {
-  
-  
+
+
   std::string result = ltlf2ltlTranslate();
   result += " & (Tail & (Tail U G ! Tail))";
   return result;
 }
 
-std::string 
+std::string
 aalta_formula::ltlf2ltlTranslate()
 {
-  /*This translation is from "Linear Temporal Logic and Linear 
-   *Dynamic Logic on Finite Traces", Giuseppe De Giacomo and Moshe Y. Vardi, 
+  /*This translation is from "Linear Temporal Logic and Linear
+   *Dynamic Logic on Finite Traces", Giuseppe De Giacomo and Moshe Y. Vardi,
    *IJCAI 2013
    */
   std::string result = "";
   switch(oper())
   {
     case And:
-      result = std::string("(") + _left->ltlf2ltlTranslate() + " & " 
+      result = std::string("(") + _left->ltlf2ltlTranslate() + " & "
                + _right->ltlf2ltlTranslate() + ")";
       break;
     case Or:
-      result = std::string("(") + _left->ltlf2ltlTranslate() + " | " 
+      result = std::string("(") + _left->ltlf2ltlTranslate() + " | "
                + _right->ltlf2ltlTranslate() + ")";
       break;
     case Next:
       result = std::string("(X (Tail & ")  + _right->ltlf2ltlTranslate() + "))";
       break;
     case Until:
-      result = std::string("(") + _left->to_string() + " U " + 
+      result = std::string("(") + _left->to_string() + " U " +
                "(Tail & " + _right->ltlf2ltlTranslate() + "))";
       break;
     case Release:
-      result = std::string("(") + _left->to_string() + " R " + 
+      result = std::string("(") + _left->to_string() + " R " +
                "(! Tail | " + _right->ltlf2ltlTranslate() + "))";
       break;
     case Undefined:
@@ -3673,7 +3690,7 @@ aalta_formula::ltlf2ltlTranslate()
  * For LTL co-safety to dfw
  *
  */
-bool 
+bool
 aalta_formula::is_cosafety ()
 {
   switch(_op)
@@ -3693,7 +3710,7 @@ aalta_formula::is_cosafety ()
   return false;
 }
 
-std::string 
+std::string
 aalta_formula::cosafety2smv ()
 {
   hash_map<aalta_formula*, int> f_ids;
@@ -3713,7 +3730,7 @@ aalta_formula::cosafety2smv ()
       case And:
       case Or:
         i ++;
-        result += "  " + var + convert_to_string(i) + " : boolean;\n"; 
+        result += "  " + var + convert_to_string(i) + " : boolean;\n";
         f_ids.insert(std::pair<aalta_formula*, int> (*it, i));
         break;
       case Not:
@@ -3730,12 +3747,12 @@ aalta_formula::cosafety2smv ()
   }
   //printf ("\n");
   /////////////////for VAR
-  
+
   /////////////////for INIT
   result += "INIT\n";
-  result += "  TRUE;\n"; 
+  result += "  TRUE;\n";
   /////////////////for INIT
-  
+
   /////////////////for TRANS
   result += "TRANS\n";
   string l, r, cur;
@@ -3752,7 +3769,7 @@ aalta_formula::cosafety2smv ()
           r = (*it)->_right->to_string();
         else
           r = var + convert_to_string(it_map->second);
-        result += "  next (" + cur + ")" + " = " + r + ";\n";  
+        result += "  next (" + cur + ")" + " = " + r + ";\n";
         break;
       case Until:
         it_map = f_ids.find(*it);
@@ -3804,8 +3821,8 @@ aalta_formula::cosafety2smv ()
     }
   }
   /////////////////for TRANS
-  
-  
+
+
   /////////////////for comments
   result += "\n\n---------------comments\n";
   for(it_map = f_ids.begin(); it_map != f_ids.end(); it_map ++)
@@ -3813,22 +3830,10 @@ aalta_formula::cosafety2smv ()
     result += var + convert_to_string(it_map->second) + " : " + it_map->first->to_string () + "\n";
   }
   /////////////////for comments
-  
-  
+
+
   return result;
 }
 
 }
 //end of Jianwen Li
-
-
-
-
-
-
-
-
-
-
-
-

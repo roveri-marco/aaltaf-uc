@@ -1,4 +1,4 @@
-/* 
+/*
  * 将表达式字符串转化为AST结构
  * File:   trans.h
  * Author: yaoyinbo
@@ -19,10 +19,11 @@ extern "C"
 #endif
 
   ltl_formula *getAST (const char *input);
+  ltl_formula *getASTF(FILE * file);
+  ltl_formulas *getASTSF(FILE * file);
 
 #ifdef	__cplusplus
 }
 #endif
 
 #endif	/* TRANS_H */
-

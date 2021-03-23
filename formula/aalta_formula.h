@@ -1,4 +1,4 @@
-/* 
+/*
  * ltl_formula变体
  * 表达式中不含<->、->、[]、<>，且！只会出现在原子前
  * 增加tag标记
@@ -16,6 +16,8 @@
 #include "util/hash_map.h"
 #include "util/hash_set.h"
 #include "ltlparser/ltl_formula.h"
+
+#include <stdio.h>
 
 #include <list>
 #include <vector>
@@ -118,8 +120,8 @@ private:
       return true;
     }
   };
-  
-  struct compare 
+
+  struct compare
   {
     bool operator () (const aalta_formula* f1, const aalta_formula* f2) const
     {
@@ -176,10 +178,11 @@ private:
 public:
   aalta_formula ();
   aalta_formula (const char *input, bool is_ltlf = false);
+  aalta_formula (FILE* fname, bool is_ltlf = false);
   aalta_formula (const aalta_formula& orig);
   aalta_formula (const ltl_formula *formula, bool is_not = false, bool is_ltlf = false);
   aalta_formula (int op, aalta_formula *left, aalta_formula *right, tag_t *tag = NULL);
-  //for aiger 
+  //for aiger
   aalta_formula (unsigned);
   aalta_formula* nnf ();
   aalta_formula* nnf_not ();
@@ -209,9 +212,9 @@ public:
   aalta_formula *simplify ();
   aalta_formula *classify (tag_t *tag = NULL);
   size_t hash () {return _hash;}
-  
+
   static bool contain (af_prt_set, af_prt_set);
-	
+
 	inline int id () {return _id;}
 
 private:
@@ -247,8 +250,8 @@ public:
   static void destroy ();
   static aalta_formula *TRUE();
   static aalta_formula *FALSE();
-  
-  
+
+
   //added by Jianwen Li on July 16, 2017
 	//add Tail for Next formulas
 	aalta_formula* add_tail ();
@@ -260,9 +263,9 @@ public:
   static aalta_formula* TAIL ();
 private:
   static aalta_formula *TAIL_;
-  
-  
-  
+
+
+
 /*
  * The followings are added by Jianwen Li on December 7th, 2013
  * For LTLf sat
@@ -274,35 +277,35 @@ public:
   aalta_formula* off();        //obligation formula for LTLf formulas.
   aalta_formula* ofr();        //obligation formula for LTLf release formulas.
   aalta_formula* ofg();  //obligation formula for LTLf global formula
-  aalta_formula* cf();        //current formula 
+  aalta_formula* cf();        //current formula
   void buildLTLf(const ltl_formula *formula, bool is_not = false);
-  
+
   bool is_global();  //check whether the formula is a global one.
   bool is_wnext_free(); //check whether the formula is weak next free.
-  
-  bool model(af_prt_set);       // check whether an assignment P models current formula 
-  bool model(aalta_formula*);   // handle when the assignment is a formula format 
+
+  bool model(af_prt_set);       // check whether an assignment P models current formula
+  bool model(aalta_formula*);   // handle when the assignment is a formula format
   aalta_formula* progf(af_prt_set);      //formula progression
-  
-  
-  
+
+
+
 //private:
   /*only for boolean formulas*/
-  
-  void toDIMACS(int_prt_map&, int (&cls)[MAX_CL][3], int&);    
+
+  void toDIMACS(int_prt_map&, int (&cls)[MAX_CL][3], int&);
   void plus(int_prt_map&, af_int_map&, int&, int&, int, int (&cls)[MAX_CL][3], int&);
   void minus(int_prt_map&, af_int_map&, int&, int&, int, int (&cls)[MAX_CL][3], int&);
-  
-  std::vector<std::vector<int> > toDIMACS(int_prt_map&);    
+
+  std::vector<std::vector<int> > toDIMACS(int_prt_map&);
   void plus(int_prt_map&, af_int_map&, int&, int&, int, std::vector<std::vector<int> >&);
   void minus(int_prt_map&, af_int_map&, int&, int&, int, std::vector<std::vector<int> >&);
   af_prt_set get_prop(std::string, int_prt_map);
-  af_prt_set SAT();  
+  af_prt_set SAT();
   aalta_formula* erase_next_global (aalta_formula::af_prt_set&);
   af_prt_set SAT_core();
-          
-  bool find (aalta_formula*);          
-  aalta_formula* mark_until ();    
+
+  bool find (aalta_formula*);
+  aalta_formula* mark_until ();
   bool model_until (af_prt_set);
   af_prt_set get_until_flags ();
   aalta_formula* normal ();
@@ -315,25 +318,25 @@ public:
   aalta_formula* get_until ();             //for the variables representing until formulas only
   //aalta_formula* neg_prop(af_prt_set);   //create the formula for !{a, b, c, ...}
   /*only for boolean formulas*/
-  
-  static int _sat_count;                // counting SAT invoking 
+
+  static int _sat_count;                // counting SAT invoking
   static void print_sat_count ();
   bool find_prop_atom (aalta_formula*);
-  
-   
+
+
   bool is_in(std::vector<aalta_formula*>);
   int search(aalta_formula, af_int_map&, int&);
   af_prt_set to_set(); //get the and elements in an And formula
   void to_set (af_prt_set&); //another version
 	af_prt_set to_or_set (); //get the or elements in an And formula
-  
+
   hash_set<aalta_formula*> and_to_set();
   af_prt_set get_alphabet();
   void complete (af_prt_set&);
-  
-  std::string ltlf2ltl(); //translate ltlf to ltl 
+
+  std::string ltlf2ltl(); //translate ltlf to ltl
   std::string ltlf2ltlTranslate(); //core of translation from ltlf to ltl
-  
+
 //end of Jianwen Li
 
 
@@ -342,11 +345,11 @@ public:
  * For LTL co-safety to dfw
  *
  */
- 
+
 bool is_cosafety ();
 std::string cosafety2smv ();
- 
- 
+
+
 //end of Jianwen Li
 
 };
@@ -354,4 +357,3 @@ std::string cosafety2smv ();
 }
 
 #endif	/* AALTA_FORMULA_H */
-
