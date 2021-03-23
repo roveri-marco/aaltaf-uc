@@ -22,23 +22,19 @@ RELEASEFLAG =	-O2
 
 aaltaf :	release
 
-ltlparser/ltllexer.c :
-	ltlparser/grammar/ltllexer.l
-	flex ltlparser/grammar/ltllexer.l
+ltlparser/ltllexer.c : ltlparser/grammar/ltllexer.l
+	cd ltlparser/grammar && flex ltllexer.l
 
-ltlparser/ltlparser.c :
-	ltlparser/grammar/ltlparser.y
-	bison ltlparser/grammar/ltlparser.y
+ltlparser/ltlparser.c : ltlparser/grammar/ltlparser.y
+	cd ltlparser/grammar && bison ltlparser.y
 
+.PHONY : release debug clean
 
+release : $(ALLFILES)
+	$(CC) $(FLAG) $(RELEASEFLAG) $(ALLFILES) -lz -o aaltaf
 
-.PHONY :    release debug clean
-
-release :   $(ALLFILES)
-	    $(CC) $(FLAG) $(RELEASEFLAG) $(ALLFILES) -lz -o aaltaf
-
-debug :	$(ALLFILES)
+debug : $(ALLFILES)
 	$(CC) $(FLAG) $(DEBUGFLAG) $(ALLFILES) -lz -o aaltaf
 
 clean :
-	rm -f *.o *~ aaltaf
+	rm -f *.o *~ aaltaf ltlparser/ltllexer.* ltlparser/ltlparser.*
