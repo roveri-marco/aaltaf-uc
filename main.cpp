@@ -96,6 +96,8 @@ ltlf_sat (int argc, char** argv)
   af = af->simplify();
   af = af->split_next();
 
+  // cout << af->to_string() << endl;
+
   if (blsc) {
     LTLfChecker checker (af, verbose, evidence);
     bool res = checker.check ();
@@ -119,6 +121,4 @@ main (int argc, char** argv)
 {
   ltlf_sat (argc, argv);
   return 0;
-
-
 }

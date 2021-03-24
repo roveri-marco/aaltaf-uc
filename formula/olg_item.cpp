@@ -566,6 +566,7 @@ olg_item::initial()
 bool
 olg_item::SATCall ()
 {
+  cout << "SATCall" << endl;
   if(_op == aalta_formula::True)
     return true;
   if(_op == aalta_formula::False)
