@@ -2454,6 +2454,7 @@ aalta_formula::SAT_core()
   {
     return P;             //false
   }
+  assert(false);
   Minisat::vec<Minisat::Lit> dummy;
   Minisat::lbool ret;
   ret = S.solveLimited(dummy);

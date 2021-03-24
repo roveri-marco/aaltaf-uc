@@ -9,7 +9,7 @@ SOLVER		= minisat/core/Solver.cc aaltasolver.cpp solver.cpp carsolver.cpp
 
 CHECKING	= ltlfchecker.cpp carchecker.cpp
 
-OTHER		= evidence.cpp
+OTHER		= evidence.cpp uc.cpp
 
 
 ALLFILES     =	$(CHECKING) $(SOLVER) $(FORMULAFILES) $(PARSERFILES) $(UTILFILES) $(OTHER) main.cpp
@@ -20,7 +20,7 @@ FLAG    = -I./  -I./minisat/  -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
 DEBUGFLAG   =	-D DEBUG -g -pg
 RELEASEFLAG =	-O2
 
-aaltaf :	release
+aaltaf :	debug
 
 ltlparser/ltllexer.c : ltlparser/grammar/ltllexer.l
 	cd ltlparser/grammar && flex ltllexer.l

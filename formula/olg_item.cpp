@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   olg_item.cpp
  * Author: yaoyinbo
- * 
+ *
  * Created on October 26, 2013, 1:42 PM
  */
 
@@ -16,7 +16,7 @@
 #include "minisat/core/Solver.h"
 #include "minisat/core/SolverTypes.h"
 #include <unistd.h>
-#include <sstream> 
+#include <sstream>
 
 using namespace std;
 using namespace Minisat;
@@ -81,17 +81,17 @@ olg_item::off_pos (int i)
   if (_right != NULL) _right->off_pos ();
   _compos = -1;
   */
-  if (_atom != NULL) 
+  if (_atom != NULL)
   {
-  
+
     if(i == 0)
     {
       _atom->_freq = olg_atom::Once;
       if(_atom->_pos != -1)
-      {  
+      {
         _atom->_isDisjunct = true;
         _atom->_orig_pos = _atom->_pos;
-      } 
+      }
     }
     else
     {
@@ -100,8 +100,8 @@ olg_item::off_pos (int i)
       _compos = -1;
       _atom->_orig_pos = -1;
     }
-    _atom->_pos = -1; 
-    
+    _atom->_pos = -1;
+
   }
   if (_left != NULL && (_left->_compos != -1 || _left->_op == aalta_formula::And)) _left->off_pos (i);
   if (_right != NULL && (_right->_compos != -1 || _right->_op == aalta_formula::And)) _right->off_pos (i);
@@ -114,11 +114,11 @@ void
 olg_item::plus_pos ()
 {
   if (_compos == -1 && _op != aalta_formula::And) return;
-  if (_atom != NULL) 
+  if (_atom != NULL)
   {
     if(_atom->_pos >= 0)
     {
-      ++_atom->_pos; 
+      ++_atom->_pos;
       _compos = _atom->_pos;
     }
     else
@@ -149,7 +149,7 @@ olg_item::unonce_freq ()
 
 /**
  * 判断频率是否都是多次的
- * @return 
+ * @return
  */
 bool
 olg_item::is_more () const
@@ -170,7 +170,7 @@ olg_item::is_more () const
 
 /**
  * 获取去除信息后的公式字符串
- * @return 
+ * @return
  */
 std::string
 olg_item::get_olg_string () const
@@ -198,7 +198,7 @@ olg_item::get_olg_string () const
 /**
  * 获取位置信息小于等于pos的olg公式
  * @param pos
- * @return 
+ * @return
  */
 std::string
 olg_item::get_olg_more_string (int pos) const
@@ -289,7 +289,7 @@ olg_item::get_id_string (int id) const
 
 /**
  * 带位置和频率信息
- * @return 
+ * @return
  */
 std::string
 olg_item::to_olg_string () const
@@ -344,7 +344,7 @@ olg_atom::olg_atom (int id, int pos, freqkind freq, bool disjunct, int orig_pos)
 
 /**
  * 带位置和频率信息
- * @return 
+ * @return
  */
 std::string
 olg_atom::to_olg_string () const
@@ -366,22 +366,22 @@ olg_atom::to_string () const
 }
 
 /*added by Jianwen Li on April 29, 2014
-   * creat the Dimacs format for Minisat 
+   * creat the Dimacs format for Minisat
    * the output is stored in the file "cnf.dimacsPID" where PID is the process ID
    * Invoked by toDimacs() of olg_formula
    */
 int olg_item::_varNum = 0; //the var number in cnf
 int olg_item::_clNum = 0;  // the clause number in cnf
 std::vector<int> olg_item::_vars; //the variables in _root
-hash_map<int, int> olg_item::_vMap;//the mapping between variable ids and encodings in Dimacs. 
+hash_map<int, int> olg_item::_vMap;//the mapping between variable ids and encodings in Dimacs.
 std::vector<olg_item*> olg_item::_items;
 std::vector<olg_atom*> olg_item::_atoms;
 
 string
 olg_item::toDimacs()
-{ 
+{
   pid_t pid = getpid ();
-  ostringstream str;  
+  ostringstream str;
   str << pid;
   string filename = "cnf.dimacs";
   filename += str.str ();
@@ -389,7 +389,7 @@ olg_item::toDimacs()
   f = fopen(filename.c_str (), "w");
   _varNum = _vMap.size();
   _clNum = 0;
-  
+
   if(f == NULL)
   {
     perror(filename.c_str ());
@@ -399,11 +399,11 @@ olg_item::toDimacs()
   {
     case aalta_formula::And:
     {
-      toDimacsPlus(NULL); 
+      toDimacsPlus(NULL);
       _clNum ++;
       fprintf(f, "p cnf %d %d\n", _varNum, _clNum);
       fprintf(f, "%d 0\n", _id);
-      
+
       toDimacsPlus(f);
       break;
     }
@@ -413,7 +413,7 @@ olg_item::toDimacs()
       _clNum ++;
       fprintf(f, "p cnf %d %d\n", _varNum, _clNum);
       fprintf(f, "%d 0\n", _id);
-      
+
       toDimacsPlus(f);
       break;
     }
@@ -433,14 +433,14 @@ olg_item::toDimacs()
       printf("To Dimacs error! Unrecognized operators...\n");
       exit(0);
   }
-  
+
   fclose(f);
   return filename;
 }
 
 //invoked by toDimacs();
-void 
-olg_item::toDimacsPlus(FILE *f) 
+void
+olg_item::toDimacsPlus(FILE *f)
 {
   int lid, rid;
   if(_op == aalta_formula::And || _op == aalta_formula::Or)
@@ -485,7 +485,7 @@ olg_item::toDimacsPlus(FILE *f)
       }
       _left->toDimacsPlus(f);
       _right->toDimacsPlus(f);
-      
+
       break;
     }
     case aalta_formula::Or:
@@ -515,7 +515,7 @@ olg_item::toDimacsPlus(FILE *f)
 }
 
 //set the _id for Dimacs construction
-void 
+void
 olg_item::setId(int& max)
 {
   if(_op == aalta_formula::Not || _op == aalta_formula::Literal)
@@ -524,13 +524,13 @@ olg_item::setId(int& max)
     return;
   }
   _id = max;
-  _left->setId(++max);  
+  _left->setId(++max);
   _right->setId(++max);
 }
 
 //get the variables in _root: set _vars and _vMap
-void 
-olg_item::getVars(int& i) 
+void
+olg_item::getVars(int& i)
 {
   if(_op == aalta_formula::Not || _op == aalta_formula::Literal)
   {
@@ -539,7 +539,7 @@ olg_item::getVars(int& i)
     {
       _vMap[_atom->_id] = ++i;
       _vars.push_back(_atom->_id);
-    }   
+    }
   }
   else
   {
@@ -548,7 +548,7 @@ olg_item::getVars(int& i)
   }
 }
 
-void 
+void
 olg_item::initial()
 {
   _vars.clear();
@@ -561,11 +561,11 @@ olg_item::initial()
 /**
  * SAT solver invoking
  * @param formula
- * @return 
+ * @return
  */
 bool
 olg_item::SATCall ()
-{  
+{
   if(_op == aalta_formula::True)
     return true;
   if(_op == aalta_formula::False)
@@ -589,10 +589,11 @@ olg_item::SATCall ()
   {
     return false;
   }
+  //assert(false);
   Minisat::vec<Minisat::Lit> dummy;
   Minisat::lbool ret;
   ret = S.solveLimited(dummy);
-  
+
   if(ret == l_True)
   {
     hash_map<int, int> _map;
@@ -615,20 +616,20 @@ olg_item::SATCall ()
   }
   if(ret == l_False)
     return false;
-    
-    
+
+
   printf("Minisat cannot check the formula!\n");
-  
+
   exit(0);
 }
 
 
-hash_set<int> 
+hash_set<int>
 olg_item::get_pos(int n)
 {
   hash_set<int> res, res2;
   bool val = false;
-  
+
   if(_atom != NULL)
   {
     switch(n)
@@ -656,12 +657,12 @@ olg_item::get_pos(int n)
 }
 
 
-olg_item* 
+olg_item*
 olg_item::proj(int pos, int i)
 {
   olg_item *item, *item1, *item2;
   bool val;
-  
+
   if(_atom != NULL)
   {
     switch(pos)
@@ -715,7 +716,7 @@ olg_item::proj(int pos, int i)
   exit(0);
 }
 
-int 
+int
 olg_item::get_max_loc(int i, int id)
 {
   int res = 0;
@@ -732,7 +733,7 @@ olg_item::get_max_loc(int i, int id)
     }
     if(val)
     {
-      res ++; 
+      res ++;
     }
   }
   else
@@ -743,7 +744,7 @@ olg_item::get_max_loc(int i, int id)
   return res;
 }
 
-olg_item* 
+olg_item*
 olg_item::proj_loc(int i, int id, int& count)
 {
   if(_op == aalta_formula::True)
@@ -754,7 +755,7 @@ olg_item::proj_loc(int i, int id, int& count)
     if(_atom->_pos == 0 && _atom->_freq == olg_atom::More)
       return this;
     if(id == _atom->_id)
-    { 
+    {
       if(i == count)
       {
         count ++;
@@ -762,10 +763,10 @@ olg_item::proj_loc(int i, int id, int& count)
       }
       else
       {
-        count ++; 
+        count ++;
         res = new olg_item(aalta_formula::True, 0);
         _items.push_back(res);
-        return res; 
+        return res;
       }
     }
     else
@@ -784,7 +785,7 @@ olg_item::proj_loc(int i, int id, int& count)
       if(res1->_op == aalta_formula::True)
         return res2;
       if(res2->_op == aalta_formula::True)
-        return res1; 
+        return res1;
       res = new olg_item(aalta_formula::And, 0, res1, res2);
       _items.push_back(res);
       return res;
@@ -798,19 +799,19 @@ olg_item::proj_loc(int i, int id, int& count)
       res = new olg_item(aalta_formula::Or, 0, res1, res2);
       _items.push_back(res);
       return res;
-    } 
+    }
   }
   printf("Computing projection Error!\n");
   exit(0);
-  
+
 }
 
-bool 
+bool
 olg_item::unsat()
 {
   olg_item *olgAll, *olgIAll, *olgNonAll, *olgNonAll2, *olgInfAll, *olgInfAll2;
   int i, loc, count;
-  
+
   hash_set<int>::iterator it;
   olgAll = proj(0, 0);
   //1. ofp(\phi)\downarrow S = false => \phi is false
@@ -819,7 +820,7 @@ olg_item::unsat()
     //olg_item::destroy();
     return true;
   }
-  
+
   //2. There exists i s.t. ofp(\phi)\downarrow i = false => \phi is false
   //3. There exists i s.t. ofp(\phi)\downarrow i /\ ofp(\phi)\downarrow S' = false => \phi is false
   //Here S'={l | l.start <= i and l.duration = >=}. If S' = {} then equal to 2.
@@ -834,13 +835,13 @@ olg_item::unsat()
       return true;
     }
   }
-  
+
   //4. There exists l s.t. l.start = \nondeter and ofp(\phi)\downarrow {l}US' = false => \phi is false
   //Here S'={l | l.start = 0 and l.duration = >=}
   ids = get_pos(1);  //find such l, but do not distinguish its different copies
   for(it = ids.begin(); it != ids.end(); ++it)
   {
-    olgNonAll = proj(2, *it); 
+    olgNonAll = proj(2, *it);
     loc = olgNonAll->get_max_loc(0, *it); //label different copies
 
     for(i = 0; i < loc; i++)
@@ -852,9 +853,9 @@ olg_item::unsat()
         //olg_item::destroy();
         return true;
       }
-    } 
+    }
   }
-  
+
   //5. There exists l s.t. l.duration = \inf and ofp(\phi)\downarrow {l}US = false => \phi is false.
   ids = get_pos(2);
   for(it = ids.begin(); it != ids.end(); it++)
@@ -872,12 +873,12 @@ olg_item::unsat()
         return true;
       }
     }
-  }  
+  }
   //olg_item::destroy();
   return false;
 }
 
-bool 
+bool
 olg_item::unsat2()
 {
   olg_item *olgAll, *item, *item1, *item2;
@@ -919,7 +920,7 @@ olg_item::unsat2()
         atoms.insert(atoms2.begin(), atoms2.end ());
         for(it2 = atoms3.begin(); it2 != atoms3.end(); it2++)
           atoms.erase(*it2);
-        
+
         it = atoms.begin();
       }
       else
@@ -963,7 +964,7 @@ olg_item::unsat2()
   return false;
 }
 
-void 
+void
 olg_item::change_freq()
 {
   if(_op == aalta_formula::Or)
@@ -987,7 +988,7 @@ olg_item::change_freq()
   return;
 }
 
-hash_set<int> 
+hash_set<int>
 olg_item::get_atoms()
 {
   hash_set<int> res, res1;
@@ -1007,14 +1008,14 @@ olg_item::get_atoms()
   return res;
 }
 
-olg_item* 
+olg_item*
 olg_item::replace_inf_item(int id, bool flag)
 {
   if(_op == aalta_formula::True || _op == aalta_formula::False)
     return this;
   if(_atom != NULL)
   {
-    if(((flag && _op == aalta_formula::Literal) || ((!flag) && _op == aalta_formula::Not)) 
+    if(((flag && _op == aalta_formula::Literal) || ((!flag) && _op == aalta_formula::Not))
        && _atom->_id == id && _atom->_freq == olg_atom::Inf)
     {
       olg_item *item = new olg_item(aalta_formula::False, 0);
@@ -1061,7 +1062,7 @@ olg_item::replace_inf_item(int id, bool flag)
   return this;
 }
 
-void 
+void
 olg_item::destroy()
 {
   int len = _atoms.size();
@@ -1075,7 +1076,7 @@ olg_item::destroy()
     }
   }
   _atoms.clear();
-  
+
   len = _items.size();
   for(int i = 0; i < len; i++)
   {
@@ -1090,5 +1091,3 @@ olg_item::destroy()
 }
 
 }
-
-

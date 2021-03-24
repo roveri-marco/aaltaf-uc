@@ -1,10 +1,10 @@
-/* 
+/*
  * File:   aaltasolver.cpp
  * Author: Jianwen Li
- * Note: An inheritance class from Minisat::Solver for Aalta use 
+ * Note: An inheritance class from Minisat::Solver for Aalta use
  * Created on August 15, 2017
  */
- 
+
 #include "aaltasolver.h"
 #include <iostream>
 #include <vector>
@@ -13,7 +13,7 @@ using namespace Minisat;
 
 namespace aalta
 {
- 	
+
  	Lit AaltaSolver::SAT_lit (int id)
  	{
  		assert (id != 0);
@@ -21,32 +21,36 @@ namespace aalta
         while (var >= nVars()) newVar();
         return ( (id > 0) ? mkLit(var) : ~mkLit(var) );
  	}
- 	
+
  	int AaltaSolver::lit_id (Lit l)
     {
-    	if (sign(l)) 
+    	if (sign(l))
             return -(var(l) + 1);
-        else 
+        else
             return var(l) + 1;
     }
- 	
+
  	bool AaltaSolver::solve_assumption ()
 	{
-		lbool ret = solveLimited (assumption_);
-		if (verbose_)
-		{
-			cout << "solve_with_assumption: assumption_ is" << endl;
-			for (int i = 0; i < assumption_.size (); i ++)
-				cout << lit_id (assumption_[i]) << ", ";
-			cout << endl;
-		}
-		if (ret == l_True)
-     		return true;
-   		else if (ret == l_Undef)
-     		exit (0);
-   		return false;
+	  Minisat::vec<Minisat::Lit> _ass;
+	  ext_assumption_.copyTo(_ass);
+	  for(int i = 0; i < assumption_.size(); i++) {
+	    _ass.push(assumption_[i]);
+	  }
+	  lbool ret = solveLimited(_ass);
+	  if (verbose_) {
+	    cout << "solve_with_assumption: assumption_ is" << endl;
+	    for (int i = 0; i < assumption_.size (); i ++)
+	      cout << lit_id (assumption_[i]) << ", ";
+	    cout << endl;
+	  }
+	  if (ret == l_True)
+	    return true;
+	  else if (ret == l_Undef)
+	    exit (0);
+	  return false;
 	}
-	
+
 	//return the model from SAT solver when it provides SAT
 	std::vector<int> AaltaSolver::get_model ()
 	{
@@ -68,14 +72,14 @@ namespace aalta
    		}
    		return res;
 	}
-	
+
 	//return the UC from SAT solver when it provides UNSAT
  	std::vector<int> AaltaSolver::get_uc ()
  	{
  		std::vector<int> reason;
 		if (verbose_)
 			cout << "get uc: \n";
- 		for (int k = 0; k < conflict.size(); k++) 
+ 		for (int k = 0; k < conflict.size(); k++)
  		{
         	Lit l = conflict[k];
         	reason.push_back (-lit_id (l));
@@ -86,7 +90,7 @@ namespace aalta
 			cout << endl;
     	return reason;
   	}
-	
+
 	void AaltaSolver::add_clause (std::vector<int>& v)
  	{
  		vec<Lit> lits;
@@ -108,14 +112,14 @@ namespace aalta
  			cout << "After adding, size of clauses is " << clauses.size () << endl;
  		*/
  	}
- 	
+
  	void AaltaSolver::add_clause (int id)
  	{
  		std::vector<int> v;
  		v.push_back (id);
  		add_clause (v);
  	}
- 	
+
  	void AaltaSolver::add_clause (int id1, int id2)
  	{
  		std::vector<int> v;
@@ -123,7 +127,7 @@ namespace aalta
  		v.push_back (id2);
  		add_clause (v);
  	}
- 	
+
  	void AaltaSolver::add_clause (int id1, int id2, int id3)
  	{
  		std::vector<int> v;
@@ -132,7 +136,7 @@ namespace aalta
  		v.push_back (id3);
  		add_clause (v);
  	}
- 	
+
  	void AaltaSolver::add_clause (int id1, int id2, int id3, int id4)
  	{
  		std::vector<int> v;
@@ -142,7 +146,7 @@ namespace aalta
  		v.push_back (id4);
  		add_clause (v);
  	}
- 	
+
  	void AaltaSolver::print_clauses ()
 	{
 		cout << "clauses in SAT solver: \n";

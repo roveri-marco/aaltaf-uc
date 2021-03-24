@@ -31,7 +31,7 @@ namespace aalta
 
 class aalta_formula
 {
-private:
+ private:
   typedef std::list<aalta_formula*> tag_t;
   ////////////
   //成员变量//
@@ -46,12 +46,10 @@ private:
   aalta_formula *_simp; // 指向化简后的公式指针
   //////////////////////////////////////////////////
 
-public:
+ public:
 
   /* af公式的hash函数 */
-  struct af_hash
-  {
-
+  struct af_hash {
     size_t operator () (const aalta_formula& af) const
     {
       return af._hash;
@@ -59,9 +57,7 @@ public:
   };
 
   /* af指针的hash函数 */
-  struct af_prt_hash
-  {
-
+  struct af_prt_hash {
     size_t operator () (const aalta_formula *af_prt) const
     {
       //return size_t (af_prt);
@@ -70,24 +66,21 @@ public:
   };
 
   /* af指针的hash函数 */
-  struct af_prt_hash2
-  {
-
+  struct af_prt_hash2 {
     size_t operator () (const aalta_formula *af_prt) const
     {
       return af_prt->_hash;
     }
   };
   /* af指针的相等函数 */
-  struct af_prt_eq
-  {
+  struct af_prt_eq {
 
     bool operator () (const aalta_formula *af_prt1, const aalta_formula *af_prt2) const
     {
       return *af_prt1 == *af_prt2;
     }
   };
-private:
+ private:
 
   /* tag的hash函数 */
   struct tag_prt_hash
@@ -130,17 +123,17 @@ private:
   };
 
   //typedef hash_map<aalta_formula, aalta_formula *, af_hash> af_prt_map;
-public:
+ public:
   typedef hash_set<aalta_formula *, af_prt_hash2, af_prt_eq> afp_set;
   typedef hash_set<aalta_formula *, af_prt_hash> af_prt_set;
   //typedef std::set<aalta_formula *, compare> af_prt_set;
-private:
+ private:
   typedef hash_set<int> int_set;
   typedef hash_set<tag_t *, tag_prt_hash, tag_prt_eq> tag_set;
   //////////////
   //静态成员变量//
   //////////////////////////////////////////////////
-private:
+ private:
   static std::vector<std::string> names; // 存储操作符的名称以及原子变量的名称
   static hash_map<std::string, int> ids; // 名称和对应的位置映射
   //static af_prt_map all_afs; // 所有aalta_formula实体和对应唯一指针的映射
@@ -150,7 +143,7 @@ private:
   static aalta_formula *_FALSE;
   //////////////////////////////////////////////////
 
-public:
+ public:
 
   /* 操作符类型 */
   enum opkind
@@ -167,7 +160,7 @@ public:
     Release,
     Undefined
   };
-private:
+ private:
 
   /* 位置类型，判断公式组成结构时用 */
   enum poskind
@@ -175,7 +168,7 @@ private:
     Left, Right, All
   };
 
-public:
+ public:
   aalta_formula ();
   aalta_formula (const char *input, bool is_ltlf = false);
   aalta_formula (FILE* fname, bool is_ltlf = false);
@@ -215,9 +208,9 @@ public:
 
   static bool contain (af_prt_set, af_prt_set);
 
-	inline int id () {return _id;}
+  inline int id () {return _id;}
 
-private:
+ private:
 
   //added for af_prt_set identification, _id is set in unique ()
   int _id;
@@ -242,7 +235,7 @@ private:
   static aalta_formula *simplify_until (aalta_formula *l, aalta_formula *r);
   static aalta_formula *simplify_release (aalta_formula *l, aalta_formula *r);
 
-public:
+ public:
   static aalta_formula *simplify_and (aalta_formula *l, aalta_formula *r);
   static aalta_formula *simplify_and_weak (aalta_formula *l, aalta_formula *r);
   static aalta_formula *merge_and (aalta_formula *af1, aalta_formula *af2);
@@ -253,25 +246,25 @@ public:
 
 
   //added by Jianwen Li on July 16, 2017
-	//add Tail for Next formulas
-	aalta_formula* add_tail ();
+  //add Tail for Next formulas
+  aalta_formula* add_tail ();
   //This function split Next subformula by /\ or \/. i.e. X(a/\ b) -> X a /\ X b
   //It is a necessary preprocessing for SAT-based checking
   aalta_formula* split_next ();
   //replace weak next with next by N f <-> Tail | X f
   aalta_formula* remove_wnext ();
   static aalta_formula* TAIL ();
-private:
+ private:
   static aalta_formula *TAIL_;
 
 
 
-/*
- * The followings are added by Jianwen Li on December 7th, 2013
- * For LTLf sat
- *
- */
-public:
+  /*
+   * The followings are added by Jianwen Li on December 7th, 2013
+   * For LTLf sat
+   *
+   */
+ public:
   typedef hash_map<int, aalta_formula *> int_prt_map;
   typedef hash_map<aalta_formula, int, af_hash> af_int_map;
   aalta_formula* off();        //obligation formula for LTLf formulas.
@@ -289,7 +282,7 @@ public:
 
 
 
-//private:
+  //private:
   /*only for boolean formulas*/
 
   void toDIMACS(int_prt_map&, int (&cls)[MAX_CL][3], int&);
@@ -328,7 +321,7 @@ public:
   int search(aalta_formula, af_int_map&, int&);
   af_prt_set to_set(); //get the and elements in an And formula
   void to_set (af_prt_set&); //another version
-	af_prt_set to_or_set (); //get the or elements in an And formula
+  af_prt_set to_or_set (); //get the or elements in an And formula
 
   hash_set<aalta_formula*> and_to_set();
   af_prt_set get_alphabet();
@@ -337,20 +330,20 @@ public:
   std::string ltlf2ltl(); //translate ltlf to ltl
   std::string ltlf2ltlTranslate(); //core of translation from ltlf to ltl
 
-//end of Jianwen Li
+  //end of Jianwen Li
 
 
-/*
- * The followings are added by Jianwen Li on October 8, 2014
- * For LTL co-safety to dfw
- *
- */
+  /*
+   * The followings are added by Jianwen Li on October 8, 2014
+   * For LTL co-safety to dfw
+   *
+   */
 
-bool is_cosafety ();
-std::string cosafety2smv ();
+  bool is_cosafety ();
+  std::string cosafety2smv ();
 
 
-//end of Jianwen Li
+  //end of Jianwen Li
 
 };
 
