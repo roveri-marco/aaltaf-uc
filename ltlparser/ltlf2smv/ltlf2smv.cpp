@@ -10,13 +10,13 @@
 #include <assert.h>
 
 using namespace std;
-using namespace aalta;
+// using namespace aalta;
 #define MAXN 1000000
 
 
 std::string get_var (ltl_formula *root)
 {
-  if (root->_var != NULL) 
+  if (root->_var != NULL)
     return root->_var;
   if (root->_type == eTRUE)
     return "TRUE";
@@ -35,7 +35,7 @@ std::string get_var (ltl_formula *root)
     VARS.insert (pair<std::string, std::string> (str, var));
     return var;
   }
-    
+
 }
 
 std::string get_ltlspec (std::set<std::string> P)
@@ -67,11 +67,11 @@ std::string ltlf2tran (ltl_formula *root, std::set<std::string>& P)
           P.insert (var);
           P.insert (var2);
           res += ltlf2tran (root->_right, P);
-          break; 
+          break;
         case eFUTURE:
           var2 = get_var (root);
           var = get_var (root->_right);
-          
+
           res += "(" + var2 + " = (" + var + " | (! Tail) & next(" + var2 + "))) & \n";
           P.insert (var);
           P.insert (var2);
@@ -102,7 +102,7 @@ std::string ltlf2tran (ltl_formula *root, std::set<std::string>& P)
         case eGLOBALLY:
           var2 = get_var (root);
           var = get_var (root->_right);
-          
+
           res += "(" + var2 + " = (" + var + " & ((! Tail) -> next(" + var2 + ")))) & \n";
           P.insert (var);
           P.insert (var2);
@@ -119,7 +119,7 @@ std::string ltlf2tran (ltl_formula *root, std::set<std::string>& P)
           res += ltlf2tran (root->_left, P);
           res += ltlf2tran (root->_right, P);
           break;
-          
+
         case eAND:
           var = get_var (root);
           var2 = get_var (root->_left);
@@ -131,7 +131,7 @@ std::string ltlf2tran (ltl_formula *root, std::set<std::string>& P)
           res += ltlf2tran (root->_left, P);
           res += ltlf2tran (root->_right, P);
           break;
-        
+
         case eIMPLIES:
           var = get_var (root);
           var2 = get_var (root->_left);
@@ -154,7 +154,7 @@ std::string ltlf2tran (ltl_formula *root, std::set<std::string>& P)
           res += ltlf2tran (root->_left, P);
           res += ltlf2tran (root->_right, P);
           break;
-         
+
         default:
           break;
   }
@@ -175,7 +175,7 @@ std::string ltlf2smv (ltl_formula *root)
     res += (*it) + " : boolean;\n";
   res += "\nINIT\n";
   res += "var0 = TRUE;\n";
-  
+
   str += "TRUE;\n";
   res += "\nTRANS\n" + str;
   std::string ltlspec = get_ltlspec (P);
@@ -204,7 +204,7 @@ void ltlf2trans_2 (ltl_formula *root, std::string& trans, std::string& defines, 
             trans += "(" + var + " = ((! Tail) & next (" + get_expr (root->_right, P) + "))) & \n";
             already_exists.insert (var);
           }
-          
+
           ltlf2trans_2 (root->_right, trans, defines, P);
           break;
         case eFUTURE:
@@ -216,7 +216,7 @@ void ltlf2trans_2 (ltl_formula *root, std::string& trans, std::string& defines, 
           if (it == already_exists.end ())
           {
             defines += var2 + " := ((" + var3 + ") | (" + var + "));\n";
-            
+
             already_exists.insert (var2);
           }
           it = already_exists.find (var);
@@ -228,12 +228,12 @@ void ltlf2trans_2 (ltl_formula *root, std::string& trans, std::string& defines, 
           P.insert (var);
           delete nx;
           ltlf2trans_2 (root->_right, trans, defines, P);
-          
+
           break;
         case eUNTIL:
           var = get_var (root);
           nx = create_operation (eNEXT, NULL, root);
-          
+
           var2 = get_expr (root->_left, P);
           var3 = get_expr (root->_right, P);
           var4 = get_var (nx);
@@ -242,7 +242,7 @@ void ltlf2trans_2 (ltl_formula *root, std::string& trans, std::string& defines, 
           {
             var2 += " & (" + var4 + ")";
             defines += var + " := ((" + var3 + ") | (" + var2 + "));\n";
-            
+
             already_exists.insert (var);
           }
           it = already_exists.find (var4);
@@ -251,17 +251,17 @@ void ltlf2trans_2 (ltl_formula *root, std::string& trans, std::string& defines, 
             trans += "(" + var4 + " = ((! Tail) & next (" + var + "))) & \n";
             already_exists.insert (var4);
           }
-         
+
           P.insert (var4);
           delete nx;
           ltlf2trans_2 (root->_left, trans, defines, P);
           ltlf2trans_2 (root->_right, trans, defines, P);
-          
+
           break;
         case eOR:
           ltlf2trans_2 (root->_left, trans, defines, P);
           ltlf2trans_2 (root->_right, trans, defines, P);
-        
+
           break;
         default:
           break;
@@ -281,9 +281,9 @@ std::string ltlf2smv_2 (ltl_formula *root)
   P.erase ("FALSE");
   for (std::set<std::string>::iterator it = P.begin (); it != P.end (); it ++)
     res += (*it) + " : boolean;\n";
-  
+
   if (defines.compare ("") != 0)
-    res += "\nDEFINE\n" + defines;    
+    res += "\nDEFINE\n" + defines;
   res += "\nINIT\n";
   res += get_expr (root, P) + "\n";
   if (trans.compare ("") != 0)
@@ -313,7 +313,7 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
             trans += "(" + var + " -> ((! Tail) & next (" + get_expr (root->_right, P) + "))) & \n";
             already_exists.insert (var);
           }
-          
+
           ltlf2trans_3 (root->_right, trans, defines, P);
           break;
         case eWNEXT:
@@ -325,7 +325,7 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
             trans += "(" + var + " -> ((! Tail) -> next (" + get_expr (root->_right, P) + "))) & \n";
             already_exists.insert (var);
           }
-          
+
           ltlf2trans_3 (root->_right, trans, defines, P);
           break;
         case eFUTURE:
@@ -337,7 +337,7 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
           if (it == already_exists.end ())
           {
             defines += var2 + " := ((" + var3 + ") | (" + var + "));\n";
-            
+
             already_exists.insert (var2);
           }
           it = already_exists.find (var);
@@ -349,7 +349,7 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
           P.insert (var);
           delete nx;
           ltlf2trans_3 (root->_right, trans, defines, P);
-          
+
           break;
         case eGLOBALLY:
           nx = create_operation (eNEXT, NULL, root);
@@ -360,7 +360,7 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
           if (it == already_exists.end ())
           {
             defines += var2 + " := ((" + var3 + ") & ( (! Tail) -> (" + var + ")));\n";
-            
+
             already_exists.insert (var2);
           }
           it = already_exists.find (var);
@@ -372,12 +372,12 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
           P.insert (var);
           delete nx;
           ltlf2trans_3 (root->_right, trans, defines, P);
-          
+
           break;
         case eUNTIL:
           var = get_var (root);
           nx = create_operation (eNEXT, NULL, root);
-          
+
           var2 = get_expr (root->_left, P);
           var3 = get_expr (root->_right, P);
           var4 = get_var (nx);
@@ -386,7 +386,7 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
           {
             var2 += " & (" + var4 + ")";
             defines += var + " := ((" + var3 + ") | (" + var2 + "));\n";
-            
+
             already_exists.insert (var);
           }
           it = already_exists.find (var4);
@@ -395,17 +395,17 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
             trans += "(" + var4 + " -> ((! Tail) & next (" + var + "))) & \n";
             already_exists.insert (var4);
           }
-         
+
           P.insert (var4);
           delete nx;
           ltlf2trans_3 (root->_left, trans, defines, P);
           ltlf2trans_3 (root->_right, trans, defines, P);
-          
+
           break;
         case eRELEASE:
           var = get_var (root);
           nx = create_operation (eNEXT, NULL, root);
-          
+
           var2 = get_expr (root->_left, P);
           var3 = get_expr (root->_right, P);
           var4 = get_var (nx);
@@ -414,7 +414,7 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
           {
             var2 += " | (Tail |" + var4 + ")";
             defines += var + " := ((" + var3 + ") & (" + var2 + "));\n";
-            
+
             already_exists.insert (var);
           }
           it = already_exists.find (var4);
@@ -423,22 +423,22 @@ void ltlf2trans_3 (ltl_formula *root, std::string& trans, std::string& defines, 
             trans += "(" + var4 + " -> ((! Tail) & next (" + var + "))) & \n";
             already_exists.insert (var4);
           }
-         
+
           P.insert (var4);
           delete nx;
           ltlf2trans_3 (root->_left, trans, defines, P);
           ltlf2trans_3 (root->_right, trans, defines, P);
-          
+
           break;
         case eOR:
           ltlf2trans_3 (root->_left, trans, defines, P);
           ltlf2trans_3 (root->_right, trans, defines, P);
-        
+
           break;
         case eAND:
           ltlf2trans_3 (root->_left, trans, defines, P);
           ltlf2trans_3 (root->_right, trans, defines, P);
-        
+
           break;
         default:
           break;
@@ -456,9 +456,9 @@ std::string ltlf2smv_3 (ltl_formula *root)
   P.erase ("FALSE");
   for (std::set<std::string>::iterator it = P.begin (); it != P.end (); it ++)
     res += (*it) + " : boolean;\n";
-  
+
   if (defines.compare ("") != 0)
-    res += "\nDEFINE\n" + defines;    
+    res += "\nDEFINE\n" + defines;
   res += "\nINIT\n";
   res += get_expr (root, P) + "\n";
   if (trans.compare ("") != 0)
@@ -480,9 +480,9 @@ std::string ltlf2smv_4 (ltl_formula *root)
   P.erase ("FALSE");
   for (std::set<std::string>::iterator it = P.begin (); it != P.end (); it ++)
     res += (*it) + " : boolean;\n";
-  
+
   if (defines.compare ("") != 0)
-    res += "\nDEFINE\n" + defines;    
+    res += "\nDEFINE\n" + defines;
   res += "\nINIT\n";
   res += get_expr (root, P) + "\n";
   if (trans.compare ("") != 0)
@@ -498,7 +498,7 @@ std::string get_expr (ltl_formula *root, std::set<std::string>& P)
 {
   std::string res = "";
   std::string var, var2, var3, var4;
-  
+
   if (root->_type == eTRUE)
   {
     res = "TRUE";
@@ -523,20 +523,20 @@ std::string get_expr (ltl_formula *root, std::set<std::string>& P)
           var = get_var (root);
           P.insert (var);
           res += var;
-         
+
           break;
         case eWNEXT:
           var = get_var (root);
           P.insert (var);
           res += var;
-         
+
           break;
         case eFUTURE:
         case eUNTIL:
         case eGLOBALLY:
         case eRELEASE:
           var = get_var (root);
-          res += var;          
+          res += var;
           break;
         case eOR:
           res += "(" + get_expr (root->_left, P) + " | " + get_expr (root->_right, P) + ")";
@@ -563,9 +563,9 @@ std::string ltlf2smv (ltl_formula *root, NF nf, ENCODE encode)
   P.erase ("FALSE");
   for (std::set<std::string>::iterator it = P.begin (); it != P.end (); it ++)
     res += (*it) + " : boolean;\n";
-  
+
   if (defines.compare ("") != 0)
-    res += "\nDEFINE\n" + defines;    
+    res += "\nDEFINE\n" + defines;
   res += "\nINIT\n";
   res += get_expr (root, P) + "\n";
   if (trans.compare ("") != 0)
@@ -611,10 +611,10 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
           {
           	std::string temp = get_expr (root->_right, P);
           	add_trans (var, temp, encode, trans);
-            
+
             already_exists.insert (var);
           }
-          
+
           ltlf2trans (root->_right, nf, encode, trans, defines, P);
           break;
         case eWNEXT:
@@ -627,7 +627,7 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
           	add_trans (var, temp, encode, trans);
             already_exists.insert (var);
           }
-          
+
           ltlf2trans (root->_right, nf, encode, trans, defines, P);
           break;
         case eFUTURE:
@@ -639,7 +639,7 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
           if (it == already_exists.end ())
           {
             defines += var2 + " := ((" + var3 + ") | (" + var + "));\n";
-            
+
             already_exists.insert (var2);
           }
           it = already_exists.find (var);
@@ -652,7 +652,7 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
           P.insert (var);
           delete nx;
           ltlf2trans (root->_right, nf, encode, trans, defines, P);
-          
+
           break;
         case eGLOBALLY:
           assert (nf != BNF);
@@ -664,7 +664,7 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
           if (it == already_exists.end ())
           {
             defines += var2 + " := ((" + var3 + ") & ( (! Tail) -> (" + var + ")));\n";
-            
+
             already_exists.insert (var2);
           }
           it = already_exists.find (var);
@@ -677,12 +677,12 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
           P.insert (var);
           delete nx;
           ltlf2trans (root->_right, nf, encode, trans, defines, P);
-          
+
           break;
         case eUNTIL:
           var = get_var (root);
           nx = create_operation (eNEXT, NULL, root);
-          
+
           var2 = get_expr (root->_left, P);
           var3 = get_expr (root->_right, P);
           var4 = get_var (nx);
@@ -691,7 +691,7 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
           {
             var2 += " & (" + var4 + ")";
             defines += var + " := ((" + var3 + ") | (" + var2 + "));\n";
-            
+
             already_exists.insert (var);
           }
           it = already_exists.find (var4);
@@ -701,18 +701,18 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
             //trans += "(" + var4 + " -> ((! Tail) & next (" + var + "))) & \n";
             already_exists.insert (var4);
           }
-         
+
           P.insert (var4);
           delete nx;
           ltlf2trans (root->_left, nf, encode, trans, defines, P);
           ltlf2trans (root->_right, nf, encode, trans, defines, P);
-          
+
           break;
         case eRELEASE:
           assert (nf != BNF);
           var = get_var (root);
           nx = create_operation (eNEXT, NULL, root);
-          
+
           var2 = get_expr (root->_left, P);
           var3 = get_expr (root->_right, P);
           var4 = get_var (nx);
@@ -721,7 +721,7 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
           {
             var2 += " | (Tail |" + var4 + ")";
             defines += var + " := ((" + var3 + ") & (" + var2 + "));\n";
-            
+
             already_exists.insert (var);
           }
           it = already_exists.find (var4);
@@ -731,23 +731,23 @@ void ltlf2trans (ltl_formula* root, NF nf, ENCODE encode, std::string& trans, st
             //trans += "(" + var4 + " -> ((! Tail) & next (" + var + "))) & \n";
             already_exists.insert (var4);
           }
-         
+
           P.insert (var4);
           delete nx;
           ltlf2trans (root->_left, nf, encode, trans, defines, P);
           ltlf2trans (root->_right, nf, encode, trans, defines, P);
-          
+
           break;
         case eOR:
           ltlf2trans (root->_left, nf, encode, trans, defines, P);
           ltlf2trans (root->_right, nf, encode, trans, defines, P);
-        
+
           break;
         case eAND:
           assert (nf != BNF);
           ltlf2trans (root->_left, nf, encode, trans, defines, P);
           ltlf2trans (root->_right, nf, encode, trans, defines, P);
-        
+
           break;
         default:
           break;
@@ -773,20 +773,14 @@ int main (int argc, char ** argv)
     {
       strcpy (in, argv[1]);
     }
-    
+
     ltl_formula *root = getAST (in);
-   
+
     ltl_formula *newroot = bnf (root);
-    //printf ("%s\n", to_string (newroot).c_str ());
+    printf ("%s\n", to_string (newroot).c_str ());
     std::string res = ltlf2smv (newroot, BNF, fussy);
-    
+
     printf ("%s\n", res.c_str ());
     destroy_formula (root);
     destroy_formula (newroot);
 }
-
-
-
-
-
-
