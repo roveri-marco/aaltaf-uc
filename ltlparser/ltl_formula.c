@@ -61,18 +61,40 @@ ltl_formulas * allocate_ltl_formulas(unsigned int init) {
   res->maxsize = init;
   res->size = 0;
   res->formulas = (ltl_formula **) malloc(sizeof(ltl_formula *) * init);
+  if (res->formulas == NULL) {
+    printf("Unable to allocate memory\n");
+    exit(1);
+  }
   res->names = (ltl_formula **) malloc(sizeof(ltl_formula *) * init);
+  if (res->names == NULL) {
+    printf("Unable to allocate memory\n");
+    exit(1);
+  }
+  return res;
 }
 
 void push_ltlformula(ltl_formulas * self,
 		     ltl_formula * name, ltl_formula * formula) {
   self->size++;
   if (self->size >= self->maxsize) {
+    ltl_formula ** f;
     self->maxsize += 50;
-    self->formulas = (ltl_formula **) realloc(self->formulas,
-					      sizeof(ltl_formula *) * self->maxsize);
-    self->names = (ltl_formula **) realloc(self->names,
-					   sizeof(ltl_formula *) * self->maxsize);
+    f = (ltl_formula **) realloc(self->formulas,
+				 sizeof(ltl_formula *) * self->maxsize);
+    if (f != NULL) {
+      self->formulas = f;
+    } else {
+      printf("Unable to allocate memory\n");
+      exit(1);
+    }
+    f = (ltl_formula **) realloc(self->names,
+				 sizeof(ltl_formula *) * self->maxsize);
+    if (f != NULL) {
+      self->names = f;
+    } else {
+      printf("Unable to allocate memory\n");
+      exit(1);
+    }
   }
   self->formulas[self->size-1] = formula;
   self->names[self->size-1] = name;
