@@ -42,6 +42,7 @@ class LTLfChecker
     }
   bool check ();
   void print_evidence ();
+  void print_uc();
 
  protected:
   //flags

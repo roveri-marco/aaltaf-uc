@@ -66,6 +66,10 @@ namespace aalta
       return solve_by_assumption (f, true);
     }
 
+    aalta_formula * get_ass_formula(int id) {
+      return ext_assumption_map_[id];
+    }
+
   protected:
     ////////////members
     int tail_;   //the integer used to represent Tail. It is fixed to be f->id ()+1
@@ -88,6 +92,8 @@ namespace aalta
     typedef hash_map<int, std::vector<int> > coi_map;
     coi_map coi_map_;   //if (1, v) is in coi_map_, that means coi (1) = v;
 
+    // To maintain mapping of SAT lit to corresponding formula
+    formula_map ext_assumption_map_;
 
 
     /////flags

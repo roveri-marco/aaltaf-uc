@@ -225,6 +225,19 @@ namespace aalta
     evidence_->print ();
   }
 
+  void LTLfChecker::print_uc() {
+    std::vector<int> u = solver_->get_uc();
+    for(auto it = u.begin(); it != u.end(); it++) {
+      int id = abs(*it);
+      aalta_formula * f = solver_->get_ass_formula(id);
+      if (f != NULL) {
+	cout << " ";
+	if (*it < 0) cout << "!";
+	cout << f->to_string();
+      }
+    }
+  }
+
   void LTLfChecker::print_formulas_id (aalta_formula* f)
   {
     if (f == NULL)

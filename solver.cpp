@@ -88,12 +88,18 @@
 	 build_formula_map (f);
 	 id = ++max_used_id_;
 	 add_equivalence (-SAT_id (f), -SAT_id (f->r_af ()), -id);
-	 dout << "adding equivalence " << -SAT_id (f) << " <-> " << -SAT_id (f->r_af ()) << " & " << -id << endl;
+	 if (verbose_)
+	   dout << "adding equivalence " << -SAT_id (f)
+		<< " <-> " << -SAT_id (f->r_af ()) << " & "
+		<< -id << endl;
 
 	 if (!f->is_future ())
 	   {
 	     add_equivalence (id, SAT_id (f->l_af ()), -tail_, SAT_id_of_next (f));
-	     dout << "adding equivalence " << id << " <-> " << -SAT_id (f->l_af ()) << " & " << -tail_ << " & " << SAT_id_of_next (f) << endl;
+	     if (verbose_)
+	       dout << "adding equivalence " << id << " <-> "
+		    << -SAT_id (f->l_af ()) << " & " << -tail_
+		    << " & " << SAT_id_of_next (f) << endl;
 
 	     add_clauses_for (f->l_af ());
 	     add_clauses_for (f->r_af ());
@@ -101,7 +107,9 @@
 	 else //F B = B \/ (!Tail /\ X (F B))
 	   {
 	     add_equivalence (id, -tail_, SAT_id_of_next (f));
-	     dout << "adding equivalence " << id << " <-> " << -tail_ << " & " << SAT_id_of_next (f) << endl;
+	     if (verbose_)
+	       dout << "adding equivalence " << id << " <-> "
+		    << -tail_ << " & " << SAT_id_of_next (f) << endl;
 
 	     add_clauses_for (f->r_af ());
 	   }
@@ -113,12 +121,17 @@
 	 build_formula_map (f);
 	 id = ++max_used_id_;
 	 add_equivalence (SAT_id (f), SAT_id (f->r_af ()), id);
-	 dout << "adding equivalence " << SAT_id (f) << " <-> " << SAT_id (f->r_af ()) << " & " << id << endl;
+	 if (verbose_)
+	   dout << "adding equivalence " << SAT_id (f) << " <-> "
+		<< SAT_id (f->r_af ()) << " & " << id << endl;
 
 	 if (!f->is_globally ())
 	   {
 	     add_equivalence (-id, -SAT_id (f->l_af ()), -tail_, -SAT_id_of_next (f));
-	     dout << "adding equivalence " << -id << " <-> " << -SAT_id (f->l_af ()) << " & " << -tail_ << " & " << -SAT_id_of_next (f) << endl;
+	     if (verbose_)
+	       dout << "adding equivalence " << -id << " <-> "
+		    << -SAT_id (f->l_af ()) << " & " << -tail_
+		    << " & " << -SAT_id_of_next (f) << endl;
 
 	     add_clauses_for (f->l_af ());
 	     add_clauses_for (f->r_af ());
@@ -126,7 +139,9 @@
 	 else //G B = B /\ (Tail \/ X (G B))
 	   {
 	     add_equivalence (-id, -tail_, -SAT_id_of_next (f));
-	     dout << "adding equivalence " << -id << " <-> " << -tail_ << " & " << -SAT_id_of_next (f) << endl;
+	     if (verbose_)
+	       dout << "adding equivalence " << -id << " <-> "
+		    << -tail_ << " & " << -SAT_id_of_next (f) << endl;
 
 	     add_clauses_for (f->r_af ());
 	   }
@@ -136,7 +151,9 @@
        case aalta_formula::And:
 	 build_formula_map (f);
 	 add_equivalence (SAT_id (f), SAT_id (f->l_af ()), SAT_id (f->r_af ()));
-	 dout << "adding equivalence " << SAT_id (f) << " <-> " << SAT_id (f->l_af ()) << " & " << SAT_id (f->r_af ()) << endl;
+	 if (verbose_)
+	   dout << "adding equivalence " << SAT_id (f) << " <-> "
+		<< SAT_id (f->l_af ()) << " & " << SAT_id (f->r_af ()) << endl;
 	 add_clauses_for (f->l_af ());
 	 add_clauses_for (f->r_af ());
 	 mark_clauses_added (f);
@@ -144,7 +161,9 @@
        case aalta_formula::Or:
 	 build_formula_map (f);
 	 add_equivalence (-SAT_id (f), -SAT_id (f->l_af ()), -SAT_id (f->r_af ()));
-	 dout << "adding equivalence " << -SAT_id (f) << " <-> " << -SAT_id (f->l_af ()) << " & " << -SAT_id (f->r_af ()) << endl;
+	 if (verbose_)
+	   dout << "adding equivalence " << -SAT_id (f) << " <-> "
+		<< -SAT_id (f->l_af ()) << " & " << -SAT_id (f->r_af ()) << endl;
 
 	 add_clauses_for (f->l_af ());
 	 add_clauses_for (f->r_af ());
@@ -257,7 +276,9 @@
 	  it!= ass.end (); it ++) {
        if ((*it) == NULL)
 	 continue;
-       ext_assumption_.push(SAT_lit((*it)->id()));
+       Minisat::Lit lit = SAT_lit((*it)->id());
+       ext_assumption_map_[lit_id(lit)] = *it;
+       ext_assumption_.push(lit);
      }
 
      return true;

@@ -1,6 +1,7 @@
 #include "formula/aalta_formula.h"
 #include "ltlfchecker.h"
 #include "carchecker.h"
+#include "uc.h"
 #include "solver.h"
 #include <stdio.h>
 #include <string.h>
@@ -10,15 +11,20 @@ char in[MAXN];
 
 using namespace aalta;
 
-void print_help() {
-  cout << "usage: ./aalta_f [-e|-v|-blsc|-t|-h] [-f file] [\"formula\"]" << endl;
-  cout << "\t -f\t:\t Read formulas from file" << endl;
-  cout << "\t -e\t:\t print example when result is SAT" << endl;
-  cout << "\t -u\t:\t computes the unsat core w.r.t. the conjunction of the input formulas" << endl;
-  cout << "\t -v\t:\t print verbose details" << endl;
-  cout << "\t -blsc\t:\t use the BLSC checking method; Default is CDLSC" << endl;
-  cout << "\t -t\t:\t print weak until formula" << endl;
-  cout << "\t -h\t:\t print help information" << endl;
+using AaltaFormulaVec=std::vector<aalta_formula*>;
+
+void print_help(const char *name) {
+  cout << "usage: " << name << " [-e|-u|-v|-blsc|-t|-l|-h] [-f file | \"formula\"]" << endl;
+  cout << "\t -f\t:\t Reads formulas from file" << endl;
+  cout << "\t -e\t:\t Prints example when result is SAT" << endl;
+  cout << "\t -u\t:\t Computes the unsat core w.r.t. the "
+       << "conjunction of the input formulas."
+       << "\n\t   \t \t\t If not specified, only firt formula is considered." << endl;
+  cout << "\t -v\t:\t Print verbose details" << endl;
+  cout << "\t -blsc\t:\t Uses the BLSC checking method; Default is CDLSC" << endl;
+  cout << "\t -t\t:\t Prints weak until formula and exit" << endl;
+  cout << "\t -l\t:\t Prints weak until formula and continue" << endl;
+  cout << "\t -h\t:\t Prints help information" << endl;
 }
 
 void
@@ -30,6 +36,7 @@ ltlf_sat (int argc, char** argv)
   int input_count = 0;
   bool blsc = false;
   bool print_weak_until_free = false;
+  bool print_formula_and_continue = false;
   char * ffile = NULL;
   FILE * file = NULL;
   for (int i = 1; i < argc; i++) {
@@ -43,8 +50,10 @@ ltlf_sat (int argc, char** argv)
       blsc = true;
     else if (strcmp (argv[i], "-t") == 0)
       print_weak_until_free = true;
+    else if (strcmp (argv[i], "-l") == 0)
+      print_formula_and_continue = true;
     else if (strcmp (argv[i], "-h") == 0) {
-      print_help ();
+      print_help (argv[0]);
       exit (0);
     }
     else if (strcmp(argv[i], "-f") == 0) {
@@ -54,17 +63,20 @@ ltlf_sat (int argc, char** argv)
 	file = fopen(ffile, "r");
 	i++;
 	if (NULL == file) {
-	  printf("Unable to open file %s\n", ffile);
+	  printf("Unable to open file \"%s\"\n"
+		 "since either the file does not exist,\n"
+		 "or you do not have the rights to open it\n", ffile);
 	  free(ffile);
+	  exit(1);
 	}
       }
       else {
-	print_help();
+	print_help(argv[0]);
 	exit(1);
       }
     }
     else {
-      print_help();
+      print_help(argv[0]);
       exit(1);
     }
   }
@@ -75,18 +87,37 @@ ltlf_sat (int argc, char** argv)
   }
 
   aalta_formula* af;
+  AaltaFormulaVec names;
+  AaltaFormulaVec formulas;
   //set tail id to be 1
   af = aalta_formula::TAIL();
 
   if (uc) {
+    get_formulas(file, names, formulas, af);
+    if (file != stdin) fclose(file);
+    if (print_weak_until_free || print_formula_and_continue) {
+      auto n = names.begin();
+      auto f = formulas.begin();
+      // cout << af->to_string() << endl;
+
+      for (; n != names.end(); ) {
+	auto el = *n; auto el1 = *f;
+	cout << "" << el->to_string() << " := "
+	     << el1->to_string() << ";" << endl;
+	n++; f++;
+      }
+      if (!print_formula_and_continue)
+	return;
+    }
 
   }
   else {
     af = aalta_formula(file, true).unique();
     if (file != stdin) fclose(file);
-    if (print_weak_until_free) {
+    if (print_weak_until_free || print_formula_and_continue) {
       cout << af->to_string() << endl;
-      return;
+      if (!print_formula_and_continue)
+	return;
     }
   }
 
@@ -100,17 +131,39 @@ ltlf_sat (int argc, char** argv)
 
   if (blsc) {
     LTLfChecker checker (af, verbose, evidence);
+    if (uc) {
+      checker.add_assumptions(names);
+    }
     bool res = checker.check ();
-    printf ("%s\n", res ? "sat" : "unsat");
+    if (!uc) {
+      cout <<  (res ? "sat" : "unsat") << endl;
+    } else {
+      cout << "The set of formulas is " << (res ? "sat" : "unsat") << endl;
+    }
     if (evidence && res)
       checker.print_evidence ();
+    if (uc && !res) {
+      cout << "unsat core:";
+      checker.print_uc(); cout << endl;
+    }
   }
   else {
     CARChecker checker (af, verbose, evidence);
+    if (uc) {
+      checker.add_assumptions(names);
+    }
     bool res = checker.check ();
-    printf ("%s\n", res ? "sat" : "unsat");
+    if (!uc) {
+      cout <<  (res ? "sat" : "unsat") << endl;
+    } else {
+      cout << "The set of formulas is " << (res ? "sat" : "unsat") << endl;
+    }
     if (evidence && res)
       checker.print_evidence ();
+    if (uc && !res) {
+      cout << "unsat core:";
+      checker.print_uc(); cout << endl;
+    }
   }
   aalta_formula::destroy();
 }

@@ -36,6 +36,7 @@ getAST (const char *input)
 
   res = formulas->formulas[0];
   free(formulas);
+  free(str);
   return res;
 }
 

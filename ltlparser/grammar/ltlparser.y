@@ -33,8 +33,9 @@ typedef void* yyscan_t;
 %parse-param { yyscan_t scanner }
 
 %union {
-	char* var_name;
-	ltl_formula *formula;
+  char var_name[100]; // To avoid allocating a string and/or referring
+		      // to yytext
+  ltl_formula *formula;
 }
 
 %left TOKEN_EQUIV
@@ -64,7 +65,6 @@ typedef void* yyscan_t;
 %%
 
 input : conjunction { };
-
 
 conjunction : TOKEN_VARIABLE TOKEN_EQBYDEF expr TOKEN_SEMI
               { push_ltlformula(*formulas, create_var($1), $3); $$ = $3; }

@@ -16,7 +16,7 @@ namespace aalta {
 
   void get_formulas(FILE * file, AaltaFormulaVec & names,
 		    AaltaFormulaVec & formulas,
-		    aalta_formula * & conjunction) {
+		    aalta_formula * & conjunction, bool get_imp) {
 
     ltl_formulas * parsed = getASTSF(file);
     conjunction = aalta_formula::TRUE();
@@ -28,10 +28,11 @@ namespace aalta {
       // n -> f ---  !n | f
       aalta_formula * imp = aalta_formula(parsed->names[i],
 					  true, true).unique();
+
       imp = aalta_formula(aalta_formula::Or, imp, f).unique();
       conjunction = aalta_formula(aalta_formula::And, conjunction, imp).unique();
       names.push_back(n);
-      formulas.push_back(imp);
+      formulas.push_back((get_imp ? imp : f));
     }
   }
 }
