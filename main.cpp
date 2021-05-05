@@ -5,11 +5,14 @@
 #include "solver.h"
 #include <stdio.h>
 #include <string.h>
+#include <chrono>
 
 #define MAXN 100000
 char in[MAXN];
 
 using namespace aalta;
+
+using TVar=std::chrono::high_resolution_clock::time_point;
 
 using AaltaFormulaVec=std::vector<aalta_formula*>;
 
@@ -30,6 +33,7 @@ void print_help(const char *name) {
 void
 ltlf_sat (int argc, char** argv)
 {
+  TVar t0, t1, t2, t3, t4;
   bool uc = false;
   bool verbose = false;
   bool evidence = false;
@@ -93,7 +97,13 @@ ltlf_sat (int argc, char** argv)
   af = aalta_formula::TAIL();
 
   if (uc) {
+    TVar t0, t1, t2, t3, t4;
+    t0 = chrono::high_resolution_clock::now();
     get_formulas(file, names, formulas, af);
+    t1 = chrono::high_resolution_clock::now();
+    cout << "Parsing of the file time: "
+      << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)
+      << endl;
     if (file != stdin) fclose(file);
     if (print_weak_until_free || print_formula_and_continue) {
       auto n = names.begin();
@@ -120,7 +130,7 @@ ltlf_sat (int argc, char** argv)
 	return;
     }
   }
-
+  t3 = chrono::high_resolution_clock::now();
   af = af->nnf();
   af = af->add_tail();
   af = af->remove_wnext();
