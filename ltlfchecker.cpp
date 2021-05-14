@@ -234,8 +234,12 @@ namespace aalta
 	cout << " ";
 	if (*it < 0) cout << "!";
 	cout << f->to_string();
+	uc_size_++;
       }
     }
+  }
+  unsigned int LTLfChecker::get_uc_size() {
+    return uc_size_;
   }
 
   void LTLfChecker::print_formulas_id (aalta_formula* f)

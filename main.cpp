@@ -33,7 +33,7 @@ void print_help(const char *name) {
 void
 ltlf_sat (int argc, char** argv)
 {
-  TVar t0, t1, t2, t3, t4;
+  TVar t0, t1, t2, t3, t4, t5, t6, t7;
   bool uc = false;
   bool verbose = false;
   bool evidence = false;
@@ -97,12 +97,11 @@ ltlf_sat (int argc, char** argv)
   af = aalta_formula::TAIL();
 
   if (uc) {
-    TVar t0, t1, t2, t3, t4;
     t0 = chrono::high_resolution_clock::now();
     get_formulas(file, names, formulas, af);
     t1 = chrono::high_resolution_clock::now();
-    cout << "Parsing of the file time: "
-      << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)
+    cout << "-- Parsing of the file time: "
+      << to_string(chrono::duration_cast<chrono::nanoseconds>(t1-t0).count()/1e9)
       << endl;
     if (file != stdin) fclose(file);
     if (print_weak_until_free || print_formula_and_continue) {
@@ -130,52 +129,91 @@ ltlf_sat (int argc, char** argv)
 	return;
     }
   }
-  t3 = chrono::high_resolution_clock::now();
   af = af->nnf();
   af = af->add_tail();
   af = af->remove_wnext();
   af = af->simplify();
   af = af->split_next();
+  t2 = chrono::high_resolution_clock::now();
+  cout << "-- Preprocessing time: "
+       << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)
+      << endl;
 
   // cout << af->to_string() << endl;
 
   if (blsc) {
     LTLfChecker checker (af, verbose, evidence);
+    t3 = chrono::high_resolution_clock::now();
+    cout << "-- Checker creation time: "
+       << to_string(chrono::duration_cast<chrono::nanoseconds>(t3-t2).count()/1e9)
+      << endl;
     if (uc) {
       checker.add_assumptions(names);
+      t5 = chrono::high_resolution_clock::now();
+      cout << "-- Checker add assumption time: "
+	   << to_string(chrono::duration_cast<chrono::nanoseconds>(t4-t3).count()/1e9)
+	   << endl;
     }
     bool res = checker.check ();
+    t6 = chrono::high_resolution_clock::now();
+    cout << "-- Checker check time: "
+	   << to_string(chrono::duration_cast<chrono::nanoseconds>(t5-t4).count()/1e9)
+	   << endl;
     if (!uc) {
       cout <<  (res ? "sat" : "unsat") << endl;
     } else {
-      cout << "The set of formulas is " << (res ? "sat" : "unsat") << endl;
+      cout << "-- The set of formulas is " << (res ? "sat" : "unsat") << endl;
     }
     if (evidence && res)
       checker.print_evidence ();
     if (uc && !res) {
-      cout << "unsat core:";
+      cout << "-- unsat core:";
       checker.print_uc(); cout << endl;
+      cout << "-- unsat core size: "
+	   << checker.get_uc_size() << endl;
     }
   }
   else {
     CARChecker checker (af, verbose, evidence);
+    t3 = chrono::high_resolution_clock::now();
+    cout << "-- Checker creation time: "
+	 << to_string(chrono::duration_cast<chrono::nanoseconds>(t3-t2).count()/1e9)
+	 << endl;
     if (uc) {
       checker.add_assumptions(names);
+      t4 = chrono::high_resolution_clock::now();
+      cout << "-- Checker add assumption time: "
+	   << to_string(chrono::duration_cast<chrono::nanoseconds>(t4-t3).count()/1e9)
+	   << endl;
     }
     bool res = checker.check ();
+    t5 = chrono::high_resolution_clock::now();
+    cout << "-- Checker check time: "
+	   << to_string(chrono::duration_cast<chrono::nanoseconds>(t5-t4).count()/1e9)
+	   << endl;
     if (!uc) {
       cout <<  (res ? "sat" : "unsat") << endl;
     } else {
-      cout << "The set of formulas is " << (res ? "sat" : "unsat") << endl;
+      cout << "-- The set of formulas is " << (res ? "sat" : "unsat") << endl;
     }
     if (evidence && res)
       checker.print_evidence ();
     if (uc && !res) {
-      cout << "unsat core:";
+      cout << "-- unsat core:";
       checker.print_uc(); cout << endl;
+      cout << "-- unsat core size: "
+	   << checker.get_uc_size() << endl;
     }
   }
   aalta_formula::destroy();
+  t6 = chrono::high_resolution_clock::now();
+  cout << "-- Checker unsat core extraction time: "
+       << to_string(chrono::duration_cast<chrono::nanoseconds>(t6-t5).count()/1e9)
+	   << endl;
+
+  cout << "-- Checker total time: "
+       << to_string(chrono::duration_cast<chrono::nanoseconds>(t6-t0).count()/1e9)
+	   << endl;
 }
 
 

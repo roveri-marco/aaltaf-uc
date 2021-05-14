@@ -1,0 +1,18 @@
+MODULE main
+
+VAR a : boolean;
+    b : boolean;
+    c : boolean;
+    d : boolean;
+
+#define _last !(X TRUE);
+
+LTLSPEC NAME P1 := G(a -> X b);
+LTLSPEC NAME P2 := G(a -> X !b);
+LTLSPEC NAME P3 := F a;
+-- LTLSPEC NAME P4 := G (b -> X !a);
+-- LTLSPEC NAME P5 := G (b -> X a);
+LTLSPEC NAME P6 := X X X X c;
+-- LTLSPEC NAME P7 := F c;
+-- LTLSPEC G c;
+-- LTLSPEC !((F b) & (F a) & G(b -> X !a) & G(b -> X a) & G(a -> X b) & G(a -> X !b))

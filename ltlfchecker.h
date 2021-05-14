@@ -43,6 +43,7 @@ class LTLfChecker
   bool check ();
   void print_evidence ();
   void print_uc();
+  unsigned int get_uc_size();
 
  protected:
   //flags
@@ -56,8 +57,7 @@ class LTLfChecker
   //If the checking result is SAT, traces_ finally store a counterexample
   std::vector<aalta_formula*> visited_;
   Evidence* evidence_;
-
-
+  unsigned int uc_size_ = 0;
 
 
   //////////functions
