@@ -41,7 +41,7 @@ debug : ltlparser/ltllexer.c ltlparser/ltlparser.c $(ALLF_OBJS)
 	$(CC) $(FLAG) $(DEBUGFLAG) $(ALLF_OBJS) -lz -o aaltaf
 
 clean :
-	rm -f *.o *~ aaltaf ltlparser/ltllexer.* ltlparser/ltlparser.*
+	rm -f *.o *~ aaltaf ltlparser/ltllexer.* ltlparser/ltlparser.* $(ALLF_OBJS)
 
 test :
 	echo $(ALLFILES)
