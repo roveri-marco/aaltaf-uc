@@ -6,7 +6,7 @@ import os
 
 def replace(infile, outfile):
    SandR = [("LTLSPEC", ""), (":=", ":"), ("NAME", "")]
-   with open(infile) as ifile, open(outfile, "w") as ofile:
+   with open(infile, "r") as ifile, open(outfile, "w") as ofile:
       for line in ifile:
          if "VAR" not in line and "MODULE" not in line:
             for s, r in SandR:
@@ -49,8 +49,8 @@ def main ():
    parser = argparse.ArgumentParser(description = DESCRIPTION,
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-   parser.add_argument('-input', help='Path to input LTLFUC file', type=_is_valid_file)
-   parser.add_argument('-output', help='Path to output LTLFUC file', type=_is_write_file)
+   parser.add_argument('-input', required=True, help='Path to input LTLFUC file', type=_is_valid_file)
+   parser.add_argument('-output', required=True, help='Path to output LTLFUC file', type=_is_write_file)
 
    args = parser.parse_args()
 
