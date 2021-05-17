@@ -129,10 +129,14 @@ ltlf_sat (int argc, char** argv)
 	return;
     }
   }
+  // Converts formula in NNF
   af = af->nnf();
   af = af->add_tail();
+  // Rewrites weak next with N f <-> Tail | X f
   af = af->remove_wnext();
+  // Simplify the formula
   af = af->simplify();
+  // Pushes X over and/or operators
   af = af->split_next();
   t2 = chrono::high_resolution_clock::now();
   cout << "-- Preprocessing time: "
