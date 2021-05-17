@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   olg_formula.cpp
  * Author: yaoyinbo
- * 
+ *
  * Created on October 25, 2013, 10:38 PM
  */
 
@@ -47,45 +47,47 @@ olg_formula::olg_formula (aalta_formula *af)
           _root = new olg_item (aalta_formula::And, cp, *lit, _root);
         }
     }
-    
+
 }
 
 olg_formula::~olg_formula ()
 {
   this->destroy (_root);
   _root = NULL;
-  
+
 /*
   for (std::list<olg_item *>::iterator it = _GF.begin (); it != _GF.end (); it++)
     this->destroy (*it);
     */
-    
+
 }
 
 /**
  * 判olg的可满足性
- * @return 
+ * @return
  */
 bool
 olg_formula::sat ()
 {
   //cout << _root->to_string() << endl;
-  if (_root->SATCall ()) 
+  if (_root->SATCall ())
   {
     _evidence = _root->_evidence;
     return true;
   }
+  // Added since rest of code commented out */
+  return false;
   //return false;
-  
+
   /*
-  
+
   //Should package the following codes as a block. To be done.
   if (_GF.empty ()) return false;
   if (! _R.empty ()) return false;
   if (! _GR.empty ()) return false;
   if (! _GU.empty ()) return false;
   if (! _GX.empty ()) return false;
-  
+
   std::list<olg_item *> gp, nr;
   std::list<olg_item *>::const_iterator lit;
   olg_item *olg_base, *olg;
@@ -123,7 +125,7 @@ olg_formula::sat ()
     if(_GP.empty ())
     {
       olg_base = NULL;
-      if(!(nr.back ()->SATCall ())) 
+      if(!(nr.back ()->SATCall ()))
       {
         ret = false;
       }
@@ -132,14 +134,14 @@ olg_formula::sat ()
     {
       cp = (nr.back ()->_compos == gp.back ()->_compos) ? gp.back ()->_compos : 0;
       olg = new olg_item (aalta_formula::And, cp, nr.back (), gp.back ());
-      if(! olg->SATCall ()) 
+      if(! olg->SATCall ())
         ret = false;
       else
-        olg_base = gp.back (); 
+        olg_base = gp.back ();
       delete olg;
     }
   }
-  
+
   if (ret)
   {
   for (lit = _GF.begin (); lit != _GF.end () && ret; lit++)
@@ -166,9 +168,9 @@ olg_formula::sat ()
       }
     }
   }
-  if (!nr.empty ()) 
+  if (!nr.empty ())
      nr.pop_front ();  //cannot delete the first element because it is not newed here!
-  if (!gp.empty ()) 
+  if (!gp.empty ())
      gp.pop_front ();  //cannot delete the first element because it is not newed here!
   for (lit = nr.begin (); lit != nr.end (); lit++)
   {
@@ -182,28 +184,30 @@ olg_formula::sat ()
   }
   return ret;
   */
-  
+
 }
 
 /**
  * check the unsatisfiability of olg formulas
- * @return 
+ * @return
  * Modified by Jianwen Li on May 5th, 2014
  */
 
 bool
 olg_formula::unsat ()
 {
-  
+
   if(_root->_op == aalta_formula::False)
     return true;
   if(_root->_op == aalta_formula::True)
     return false;
-    
+
   if(_root->unsat()) {olg_item::destroy(); return true;}
+  // Added since rest of code commented out */
+  return false;
   /*
   if(_root->unsat2()) {olg_item::destroy(); return true;}
-  
+
   GX_loop ();
   olg_item *gx_imply = GX_imply ();
   if (gx_imply != NULL)
@@ -214,12 +218,12 @@ olg_formula::unsat ()
     if(root_renew->unsat2 ()) { delete root_renew; olg_item::destroy(); return true;}
     delete root_renew;
   }
-  
-  
+
+
   olg_item::destroy();
-  return false; 
+  return false;
   */
-  
+
 }
 
 
@@ -278,10 +282,10 @@ olg_formula::classify (aalta_formula *af)
             { // Futrue
               //@ TODO: 可否不要再一次build？？，若不build，可不用在析构中destroy
               //if (!F) _GF.push_back (build (or_now->r_af ()));
-              
-              _GF.push_back(build (or_now->r_af()));  
+
+              _GF.push_back(build (or_now->r_af()));
               F = 1;
-              break; 
+              break;
             }
         }
       if(F > 0) continue;
@@ -313,11 +317,11 @@ olg_formula::classify (aalta_formula *af)
             }
           */
         }
-      
+
       if(F > 0) continue;
         _GP.push_back (item);
       /*
-      if (F > 0) 
+      if (F > 0)
       {
         //_GF.push_back (item);
         _G.push_back (item);  //_G used in constructive function
@@ -331,7 +335,7 @@ olg_formula::classify (aalta_formula *af)
 /**
  * 通过aalta_formula构造olg结构
  * @param af
- * @return 
+ * @return
  */
 olg_item *
 olg_formula::build (const aalta_formula *af)
@@ -360,7 +364,7 @@ olg_formula::build (const aalta_formula *af)
               /*
               if(left->_compos == -2 || right->_compos == -2)
                 cp = -2;
-              else 
+              else
               */
               cp = (left->_compos == right->_compos && left->_compos != -1) ? left->_compos : -1;
               root = new olg_item (aalta_formula::And, cp, left, right);
@@ -387,7 +391,7 @@ olg_formula::build (const aalta_formula *af)
               /*
               if(left->_compos == -2 || right->_compos == -2)
                 cp = -1;
-              else 
+              else
               */
               cp = (left->_compos == right->_compos && left->_compos != -1) ? left->_compos : -1;
               root = new olg_item (aalta_formula::Or, cp, left, right);
@@ -399,7 +403,7 @@ olg_formula::build (const aalta_formula *af)
       root = build (af->r_af ());
       root->plus_pos ();
       break;
-      
+
     case aalta_formula::Release: // R
       root = build (af->r_af ());
       if (af->l_af ()->oper () == aalta_formula::False) // G
@@ -471,7 +475,7 @@ olg_formula::destroy (olg_item *root)
 
 /**
  * 带信息
- * @return 
+ * @return
  */
 std::string
 olg_formula::to_olg_string () const
@@ -487,11 +491,11 @@ olg_formula::to_string () const
   return _root->to_string ();
 }
 
-olg_item* 
+olg_item*
 olg_formula::GX_imply ()
 {
   if(_GX_loop.empty()) return NULL;
-  
+
   std::vector<aalta_formula*>::iterator it = _GX_loop.begin();
   olg_item *result = new olg_item (*it, false);  //0 for GF
   olg_item *item;
@@ -504,7 +508,7 @@ olg_formula::GX_imply ()
     //olg_item::_items.push_back (item);
     olg_item::_items.push_back (result);
   }
-  
+
   item = G_be_implied ();
   if(item != NULL)
   {
@@ -514,11 +518,11 @@ olg_formula::GX_imply ()
   return result;
 }
 
-olg_item* 
+olg_item*
 olg_formula::G_be_implied ()
 {
   if(_GX_loop.empty()) return NULL;
-  
+
   std::vector<aalta_formula*>::iterator it = _GX_loop.begin();
   hash_set<aalta_formula*> atoms1, atoms2;
   hash_set<aalta_formula*>::iterator it_f;
@@ -538,13 +542,13 @@ olg_formula::G_be_implied ()
     if(atoms1.empty ())
       return NULL;
   }
-  
+
   aalta_formula *af = build_from_set (atoms1);
   olg_item *result = new olg_item (af, true);
   return result;
 }
 
-aalta_formula* 
+aalta_formula*
 olg_formula::build_from_set (hash_set<aalta_formula*> atoms)
 {
   hash_set<aalta_formula*>::iterator it = atoms.begin();
@@ -555,11 +559,11 @@ olg_formula::build_from_set (hash_set<aalta_formula*> atoms)
   {
     result = aalta_formula (aalta_formula::And, result, *it).unique ();
   }
-  
+
   return result;
 }
 
-void 
+void
 olg_formula::GX_loop ()
 {
   std::list<aalta_formula*>::iterator it;
@@ -601,12 +605,12 @@ olg_formula::GX_loop ()
     else
     {
       pos ++;
-      item1 = item3; 
+      item1 = item3;
     }
   }
 }
 
-std::pair<aalta_formula*, aalta_formula*> 
+std::pair<aalta_formula*, aalta_formula*>
 olg_formula::split_GX (aalta_formula *af)
 {
   aalta_formula *or_next = af;
@@ -632,7 +636,7 @@ olg_formula::split_GX (aalta_formula *af)
       }
     }
   }
-  
+
   if(cur == NULL)
     return std::make_pair((aalta_formula*)NULL, (aalta_formula*)NULL);
   bool atom, next;
@@ -642,10 +646,10 @@ olg_formula::split_GX (aalta_formula *af)
     next = false;
     for(int i = 0; i < gx.size (); i ++)
     {
-      if(gx[i]->is_next ()) 
+      if(gx[i]->is_next ())
       {
         if(gx[i]->oper () == aalta_formula::Next && !atom)
-        { 
+        {
           gx[i] = gx[i]->r_af ();
           next = true;
         }
@@ -655,22 +659,22 @@ olg_formula::split_GX (aalta_formula *af)
       else
       {
         atom = true;
-      } 
+      }
     }
     if(atom)  break;
     if(next)  next = false;
   }
-  
+
   nex = gx[0];
   for(int i = 1; i < gx.size(); i ++)
   {
     nex = aalta_formula(aalta_formula::Or, nex, gx[i]).unique ();
   }
-  
+
   return std::make_pair (cur, nex);
 }
 
-bool 
+bool
 olg_formula::find_in_GX_loop (aalta_formula *af) //cannot find the last element
 {
   int size = _GX_loop.size ();
@@ -683,7 +687,7 @@ olg_formula::find_in_GX_loop (aalta_formula *af) //cannot find the last element
 }
 
 
-int 
+int
 olg_formula::get_pos (aalta_formula *af)
 {
   int result, pos;
@@ -711,13 +715,8 @@ olg_formula::get_pos (aalta_formula *af)
     default:
       result = 0;
   }
-  
+
   return result;
 }
 
 }
-
-
-
-
-
