@@ -34,7 +34,13 @@ FUTURE		F|\<>
 GLOBALLY	G|\[\]
 NEXT		X
 WEAK_NEXT	N
-NOT			!|~
+TRIGGER		T
+SINCE		S
+ONCE		O
+HISTORICALLY	H
+YESTERDAY	Y
+ZYESTERDAY	Z
+NOT		!|~
 
 TRUE			1|[tT]rue|TRUE
 FALSE			0|[fF]alse|FALSE
@@ -59,7 +65,12 @@ WS			[ \r\n\t]*
 {NEXT}			{ return TOKEN_NEXT;		}
 {WEAK_NEXT}		{ return TOKEN_WEAK_NEXT;	}
 {NOT}			{ return TOKEN_NOT;		}
-
+{YESTERDAY}		{ return TOKEN_YESTERDAY;	}
+{ZYESTERDAY}		{ return TOKEN_ZYESTERDAY;	}
+{ONCE}			{ return TOKEN_ONCE;		}
+{HISTORICALLY}		{ return TOKEN_HISTORICALLY;	}
+{SINCE}			{ return TOKEN_SINCE;		}
+{TRIGGER}		{ return TOKEN_TRIGGER;		}
 {WS}                    { /* Skip blanks. */		}
 {TRUE}			{ return TOKEN_TRUE;		}
 {FALSE}			{ return TOKEN_FALSE;		}

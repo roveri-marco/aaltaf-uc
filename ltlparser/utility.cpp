@@ -17,7 +17,7 @@ ltl_formula *clone (ltl_formula *root)
     return NULL;
   if (root->_var != NULL)
     res = create_var (root->_var);
-  else 
+  else
   {
     l = clone (root->_left);
     r = clone (root->_right);
@@ -29,7 +29,7 @@ ltl_formula *clone (ltl_formula *root)
 std::string to_string (ltl_formula *root)
 {
   std::string res = "";
-  if (root == NULL) 
+  if (root == NULL)
     return res;
   if (root->_var != NULL)
     res = std::string (root->_var);
@@ -49,6 +49,12 @@ std::string to_string (ltl_formula *root)
         case eNEXT:
           res += "X ";
           break;
+        case eYESTERDAY:
+          res += "Y ";
+          break;
+        case eZYESTERDAY:
+          res += "Z ";
+          break;
         case eWNEXT:
           res += "N ";
           break;
@@ -58,11 +64,23 @@ std::string to_string (ltl_formula *root)
         case eFUTURE:
           res += "F ";
           break;
+        case eONCE:
+          res += "O ";
+          break;
+        case eHISTORICALLY:
+          res += "H ";
+          break;
         case eUNTIL:
           res += " U ";
           break;
         case eRELEASE:
           res += " V ";
+          break;
+        case eSINCE:
+          res += " S ";
+          break;
+        case eTRIGGER:
+          res += " T ";
           break;
         case eAND:
           res += " & ";
@@ -92,7 +110,7 @@ std::set<std::string> get_alphabet (ltl_formula *root)
   std::set<std::string> res, l, r;
   if (root->_var != NULL)
     res.insert (std::string (root->_var));
-  else 
+  else
   {
   if (root->_left != NULL)
   {
@@ -118,7 +136,7 @@ std::string string_of (int id)
 ltl_formula* bnf (ltl_formula *root)
 {
   ltl_formula *res = NULL;
-  if (root == NULL) 
+  if (root == NULL)
     return res;
   if (root->_var != NULL)
     res = clone (root);
@@ -142,6 +160,19 @@ ltl_formula* bnf (ltl_formula *root)
           r = bnf (root->_right);
           res = create_operation (eNEXT, NULL, r);
           break;
+        case eYESTERDAY:
+          r = bnf (root->_right);
+          res = create_operation (eYESTERDAY, NULL, r);
+          break;
+	case eZYESTERDAY:
+	  r = bnf (root->_right);
+	  if (r->_type == eNOT)
+	    r = r->_right;
+	  else
+	    r = create_operation(eNOT, NULL, r);
+	  res = create_operation(eYESTERDAY, NULL, r);
+	  res = create_operation(eNOT, NULL, res);
+	  break;
         case eGLOBALLY:
           r = bnf (root->_right);
           if (r->_type == eNOT)
@@ -155,10 +186,28 @@ ltl_formula* bnf (ltl_formula *root)
           r = bnf (root->_right);
           res = create_operation (eFUTURE, NULL, r);
           break;
+        case eHISTORICALLY:
+          r = bnf (root->_right);
+          if (r->_type == eNOT)
+            r = r->_right;
+          else
+            r = create_operation (eNOT, NULL, r);
+          res = create_operation (eONCE, NULL, r);
+          res = create_operation (eNOT, NULL, res);
+          break;
+        case eONCE:
+          r = bnf (root->_right);
+          res = create_operation (eONCE, NULL, r);
+          break;
         case eUNTIL:
           l = bnf (root->_left);
           r = bnf (root->_right);
           res = create_operation (eUNTIL, l, r);
+          break;
+        case eSINCE:
+          l = bnf (root->_left);
+          r = bnf (root->_right);
+          res = create_operation (eSINCE, l, r);
           break;
         case eRELEASE:
           l = bnf (root->_left);
@@ -174,6 +223,21 @@ ltl_formula* bnf (ltl_formula *root)
           res = create_operation (eUNTIL, l, r);
           res = create_operation (eNOT, NULL, res);
           break;
+        case eTRIGGER:
+          l = bnf (root->_left);
+          r = bnf (root->_right);
+          if (l->_type == eNOT)
+            l = l->_right;
+          else
+            l = create_operation (eNOT, NULL, l);
+          if (r->_type == eNOT)
+            r = r->_right;
+          else
+            r = create_operation (eNOT, NULL, r);
+          res = create_operation (eSINCE, l, r);
+          res = create_operation (eNOT, NULL, res);
+          break;
+
         case eAND:
           l = bnf (root->_left);
           r = bnf (root->_right);
@@ -220,7 +284,7 @@ ltl_formula* bnf (ltl_formula *root)
 ltl_formula *nnf (ltl_formula *root)
 {
   ltl_formula *res = NULL;
-  if (root == NULL) 
+  if (root == NULL)
     return res;
   if (root->_var != NULL)
     res = clone (root);
@@ -240,6 +304,10 @@ ltl_formula *nnf (ltl_formula *root)
           r = nnf (root->_right);
           res = create_operation (eNEXT, NULL, r);
           break;
+        case eYESTERDAY:
+          r = nnf (root->_right);
+          res = create_operation (eYESTERDAY, NULL, r);
+          break;
         case eGLOBALLY:
           r = nnf (root->_right);
           res = create_operation (eGLOBALLY, NULL, r);
@@ -247,6 +315,14 @@ ltl_formula *nnf (ltl_formula *root)
         case eFUTURE:
           r = nnf (root->_right);
           res = create_operation (eFUTURE, NULL, r);
+          break;
+        case eONCE:
+          r = nnf (root->_right);
+          res = create_operation (eONCE, NULL, r);
+          break;
+        case eHISTORICALLY:
+          r = nnf (root->_right);
+          res = create_operation (eHISTORICALLY, NULL, r);
           break;
         case eUNTIL:
           l = nnf (root->_left);
@@ -257,6 +333,16 @@ ltl_formula *nnf (ltl_formula *root)
           l = nnf (root->_left);
           r = nnf (root->_right);
           res = create_operation (eRELEASE, l, r);
+          break;
+        case eSINCE:
+          l = nnf (root->_left);
+          r = nnf (root->_right);
+          res = create_operation (eSINCE, l, r);
+          break;
+        case eTRIGGER:
+          l = nnf (root->_left);
+          r = nnf (root->_right);
+          res = create_operation (eTRIGGER, l, r);
           break;
         case eAND:
           l = nnf (root->_left);
@@ -318,9 +404,17 @@ ltl_formula* nnf_not (ltl_formula *root)
           r = nnf_not (root->_right);
           res = create_operation (eWNEXT, NULL, r);
           break;
+        case eYESTERDAY:
+          r = nnf_not (root->_right);
+          res = create_operation (eZYESTERDAY, NULL, r);
+          break;
         case eWNEXT:
           r = nnf_not (root->_right);
           res = create_operation (eNEXT, NULL, r);
+          break;
+        case eZYESTERDAY:
+          r = nnf_not (root->_right);
+          res = create_operation (eYESTERDAY, NULL, r);
           break;
         case eGLOBALLY:
           r = nnf_not (root->_right);
@@ -330,6 +424,14 @@ ltl_formula* nnf_not (ltl_formula *root)
           r = nnf_not (root->_right);
           res = create_operation (eGLOBALLY, NULL, r);
           break;
+	case eONCE:
+	  r = nnf_not(root->_right);
+	  res = create_operation(eHISTORICALLY, NULL, r);
+	  break;
+	case eHISTORICALLY:
+	  r = nnf_not(root->_right);
+	  res = create_operation(eONCE, NULL, r);
+	  break;
         case eUNTIL:
           l = nnf_not (root->_left);
           r = nnf_not (root->_right);
@@ -338,7 +440,17 @@ ltl_formula* nnf_not (ltl_formula *root)
         case eRELEASE:
           l = nnf_not (root->_left);
           r = nnf_not (root->_right);
-          res = create_operation (eFUTURE, l, r);
+          res = create_operation (eUNTIL, l, r);
+          break;
+	case eSINCE:
+	  l = nnf_not (root->_left);
+          r = nnf_not (root->_right);
+          res = create_operation (eTRIGGER, l, r);
+          break;
+	case eTRIGGER:
+	  l = nnf_not (root->_left);
+          r = nnf_not (root->_right);
+          res = create_operation (eRELEASE, l, r);
           break;
         case eAND:
           l = nnf_not (root->_left);
@@ -373,8 +485,3 @@ ltl_formula* nnf_not (ltl_formula *root)
     }
   return res;
 }
-
-
-
-
-

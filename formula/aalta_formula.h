@@ -158,6 +158,10 @@ class aalta_formula
     WNext, //weak Next, for LTLf
     Until,
     Release,
+    Yesterday,
+    ZYesterday, // Weak Yesterday for initial state
+    Since,
+    Trigger,
     Undefined
   };
  private:
@@ -192,11 +196,16 @@ class aalta_formula
   int get_length ();
   aalta_formula *af_now (int op);
   aalta_formula *af_next (int op)const;
-  bool is_future ()const;
-  bool is_globally ()const;
-  bool is_until ()const;
-  bool is_next ()const;
-  bool release_free ()const;
+  bool is_future() const;
+  bool is_globally() const;
+  bool is_once() const;
+  bool is_historically() const;
+  bool is_until() const;
+  bool is_since() const;
+  bool is_next() const;
+  bool is_yesterday() const;
+  bool release_free() const;
+  bool trigger_free() const;
   aalta_formula *clone ()const;
   std::string to_string ()const;
   std::string to_RPN ()const;

@@ -723,6 +723,10 @@ aalta_formula::init ()
       names.push_back ("N"); //weak Next, for LTLf
       names.push_back ("U");
       names.push_back ("R");
+      names.push_back ("Y");
+      names.push_back ("Z");
+      names.push_back ("S");
+      names.push_back ("T");
       names.push_back ("Undefined");
     }
 }
@@ -920,26 +924,22 @@ aalta_formula::aalta_formula (unsigned index)
 
 aalta_formula::~aalta_formula () { }
 
-aalta_formula *
-aalta_formula::nnf ()
-{
+aalta_formula * aalta_formula::nnf() {
   aalta_formula *result, *l, *r;
-  if (oper () == Not)
-  {
-    if (_right->oper () == Not)
-      result = _right->_right->nnf ();
+  if (oper() == Not) {
+    if (_right->oper() == Not)
+      result = _right->_right->nnf();
     else
-      result = _right->nnf_not ();
+      result = _right->nnf_not();
   }
-  else
-  {
+  else {
     l = NULL;
     r = NULL;
     if (_left != NULL)
-      l = _left->nnf ();
+      l = _left->nnf();
     if (_right != NULL)
-      r = _right->nnf ();
-    result = aalta_formula (oper (), l, r).unique ();
+      r = _right->nnf();
+    result = aalta_formula(oper(), l, r).unique();
   }
   return result;
 }
@@ -967,6 +967,14 @@ aalta_formula::nnf_not ()
       r = _right->nnf_not ();
       result = aalta_formula (Next, NULL, r).unique ();
       break;
+    case Yesterday:
+      r = _right->nnf_not();
+      result = aalta_formula(ZYesterday, NULL, r).unique();
+      break;
+    case ZYesterday:
+      r = _right->nnf_not();
+      result = aalta_formula(Yesterday, NULL, r).unique();
+      break;
     case And:
       l = _left->nnf_not ();
       r = _right->nnf_not ();
@@ -986,6 +994,16 @@ aalta_formula::nnf_not ()
       l = _left->nnf_not ();
       r = _right->nnf_not ();
       result = aalta_formula (Until, l, r).unique ();
+      break;
+    case Since:
+      l = _left->nnf_not();
+      r = _right->nnf_not();
+      result = aalta_formula(Trigger, l, r).unique();
+      break;
+    case Trigger:
+      l = _left->nnf_not();
+      r = _right->nnf_not();
+      result = aalta_formula(Since, l, r).unique();
       break;
     default:
       result = aalta_formula (Not, NULL, this).unique ();
@@ -1086,6 +1104,20 @@ aalta_formula::build (const ltl_formula *formula, bool is_not, bool is_ltlf)
         _op = WNext;
       _right = aalta_formula (formula->_right, is_not, is_ltlf).unique ();
       break;
+    case eYESTERDAY:
+      if (is_not)
+	_op = ZYesterday;
+      else
+	_op = Yesterday;
+      _right = aalta_formula(formula->_right, is_not, is_ltlf).unique();
+      break;
+    case eZYESTERDAY: // Z -- [!(Za) = Y(!a)]
+      if (is_not)
+	_op = Yesterday;
+      else
+	_op = ZYesterday;
+      _right = aalta_formula(formula->_right, is_not, is_ltlf).unique();
+      break;
     case eGLOBALLY: // G a = False R a -- [!(G a) = True U !a]
       if (is_not) _op = Until, _left = TRUE ();
       else _op = Release, _left = FALSE ();
@@ -1120,6 +1152,26 @@ aalta_formula::build (const ltl_formula *formula, bool is_not, bool is_ltlf)
     case eRELEASE: // a R b -- [!(a R b) = !a U !b]
       _op = is_not ? Until : Release;
       _left = aalta_formula (formula->_left, is_not, is_ltlf).unique ();
+      _right = aalta_formula (formula->_right, is_not, is_ltlf).unique ();
+      break;
+    case eSINCE: // a S b -- [!(a S b) = !a T !b]
+      _op = is_not ? Trigger : Since;
+      _left = aalta_formula (formula->_left, is_not, is_ltlf).unique ();
+      _right = aalta_formula (formula->_right, is_not, is_ltlf).unique ();
+      break;
+    case eTRIGGER: // a T b -- [!(a T b) = !a S !b]
+      _op = is_not ? Since : Trigger;
+      _left = aalta_formula (formula->_left, is_not, is_ltlf).unique ();
+      _right = aalta_formula (formula->_right, is_not, is_ltlf).unique ();
+      break;
+    case eONCE: // O a = True S a -- [! O a = False T !a]
+      if (is_not) _op = Trigger, _left = FALSE ();
+      else _op = Since, _left = TRUE ();
+      _right = aalta_formula (formula->_right, is_not, is_ltlf).unique ();
+      break;
+    case eHISTORICALLY: // H a = False T a -- [!(H a) = True S !a]
+      if (is_not) _op = Since, _left = TRUE ();
+      else _op = Trigger, _left = FALSE ();
       _right = aalta_formula (formula->_right, is_not, is_ltlf).unique ();
       break;
     case eAND: // a & b -- [!(a & b) = !a | !b ]
@@ -1463,13 +1515,13 @@ aalta_formula::is_future () const
 //@ TODO: 倒是变成inline看看啊。。。
 
 bool
-aalta_formula::is_globally () const
+aalta_formula::is_globally() const
 {
   return _op == Release && _left->_op == False;
 }
 
 bool
-aalta_formula::is_until () const
+aalta_formula::is_until() const
 {
   if (_op == Until && _left->_op != True)
     return true;
@@ -1481,16 +1533,47 @@ aalta_formula::is_until () const
 }
 
 bool
-aalta_formula::is_next () const
+aalta_formula::is_next() const
 {
   if (_op == Next)
     return true;
-  if (_left != NULL && _left->is_next ())
+  if (_left != NULL && _left->is_next())
     return true;
-  if (_right != NULL && _right->is_next ())
+  if (_right != NULL && _right->is_next())
     return true;
   return false;
+}
 
+bool aalta_formula::is_yesterday() const
+{
+  if (_op == Yesterday) return true;
+  if (_left != NULL && _left->is_yesterday()) return true;
+  if (_right != NULL && _right->is_yesterday()) return true;
+  return false;
+}
+
+bool
+aalta_formula::is_once() const
+{
+  return _op == Since && _left->_op == True;
+}
+
+bool
+aalta_formula::is_historically() const
+{
+  return _op == Trigger && _left->_op == False;
+}
+
+bool
+aalta_formula::is_since() const
+{
+  if (_op == Since && _left->_op != True)
+    return true;
+  if (_left != NULL && _left->is_since ())
+    return true;
+  if (_right != NULL && _right->is_since ())
+    return true;
+  return false;
 }
 
 /**
@@ -1508,6 +1591,18 @@ aalta_formula::release_free () const
     return false;
   return true;
 }
+
+bool
+aalta_formula::trigger_free () const
+{
+  if (_op == Trigger) return false;
+  if (_left != NULL && !_left->trigger_free ())
+    return false;
+  if (_right != NULL && !_right->trigger_free ())
+    return false;
+  return true;
+}
+
 
 /**
  * 克隆出该对象的副本（需要在外部显式delete）
@@ -1593,29 +1688,26 @@ aalta_formula::to_string () const
 }
 
 
-aalta_formula* aalta_formula::add_tail ()
-{
-	aalta_formula *res, *l, *r;
-	if (oper () == Next)
-	{
-		r = _right->add_tail ();
-		res = aalta_formula (Next, NULL, r).unique ();
-		aalta_formula *not_tail = aalta_formula (Not, NULL, TAIL ()).unique ();
-		res = aalta_formula (And, not_tail, res).unique ();
-	}
-	else
-	{
-		if (_left != NULL)
-			l = _left->add_tail ();
-		else
-			l = NULL;
-		if (_right != NULL)
-			r = _right->add_tail ();
-		else
-			r = NULL;
-		res = aalta_formula (oper (), l, r).unique ();
-	}
-	return res;
+aalta_formula* aalta_formula::add_tail() {
+  aalta_formula *res, *l, *r;
+  if (oper () == Next) {
+    r = _right->add_tail ();
+    res = aalta_formula (Next, NULL, r).unique ();
+    aalta_formula *not_tail = aalta_formula (Not, NULL, TAIL ()).unique ();
+    res = aalta_formula (And, not_tail, res).unique ();
+  }
+  else {
+    if (_left != NULL)
+      l = _left->add_tail ();
+    else
+      l = NULL;
+    if (_right != NULL)
+      r = _right->add_tail ();
+    else
+      r = NULL;
+    res = aalta_formula (oper (), l, r).unique ();
+  }
+  return res;
 }
 
 
@@ -1688,12 +1780,10 @@ aalta_formula::remove_wnext ()
 }
 
 aalta_formula* aalta_formula::TAIL_ = NULL;
-aalta_formula*
-aalta_formula::TAIL ()
-{
-	if (TAIL_ == NULL)
-		TAIL_ = aalta_formula ("Tail").unique ();
-	return TAIL_;
+aalta_formula* aalta_formula::TAIL() {
+  if (TAIL_ == NULL)
+    TAIL_ = aalta_formula("Tail").unique();
+  return TAIL_;
 }
 
 
@@ -3639,10 +3729,7 @@ aalta_formula::complete (af_prt_set& P)
 }
 
 std::string
-aalta_formula::ltlf2ltl()
-{
-
-
+aalta_formula::ltlf2ltl() {
   std::string result = ltlf2ltlTranslate();
   result += " & (Tail & (Tail U G ! Tail))";
   return result;

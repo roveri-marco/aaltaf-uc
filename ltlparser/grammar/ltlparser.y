@@ -45,11 +45,17 @@ typedef void* yyscan_t;
 %left TOKEN_RELEASE
 %left TOKEN_UNTIL
 %left TOKEN_WEAK_UNTIL
+%left TOKEN_SINCE
+%left TOKEN_TRIGGER
 %right TOKEN_FUTURE
 %right TOKEN_GLOBALLY
 %right TOKEN_NEXT
 %right TOKEN_WEAK_NEXT
 %right TOKEN_NOT
+%right TOKEN_YESTERDAY
+%right TOKEN_ZYESTERDAY
+%right TOKEN_ONCE
+%right TOKEN_HISTORICALLY
 
 %token TOKEN_TRUE
 %token TOKEN_FALSE
@@ -84,11 +90,17 @@ expr
 	| expr TOKEN_RELEASE expr	{ $$ = create_operation( eRELEASE, $1, $3 );	}
 	| expr TOKEN_UNTIL expr		{ $$ = create_operation( eUNTIL, $1, $3 );		}
 	| expr TOKEN_WEAK_UNTIL expr	{ $$ = create_operation( eWUNTIL, $1, $3 );		}
+	| expr TOKEN_SINCE expr		{ $$ = create_operation( eSINCE, $1, $3 );		}
+	| expr TOKEN_TRIGGER expr	{ $$ = create_operation( eTRIGGER, $1, $3 );		}
 	| TOKEN_FUTURE expr		{ $$ = create_operation( eFUTURE, NULL, $2 );	}
 	| TOKEN_GLOBALLY expr		{ $$ = create_operation( eGLOBALLY, NULL, $2 );	}
 	| TOKEN_NEXT expr		{ $$ = create_operation( eNEXT, NULL, $2 );		}
 	| TOKEN_WEAK_NEXT expr		{ $$ = create_operation( eWNEXT, NULL, $2 );		}
 	| TOKEN_NOT expr		{ $$ = create_operation( eNOT, NULL, $2 );		}
+	| TOKEN_YESTERDAY expr		{ $$ = create_operation( eYESTERDAY, NULL, $2 );		}
+	| TOKEN_ZYESTERDAY expr		{ $$ = create_operation( eZYESTERDAY, NULL, $2 );		}
+	| TOKEN_HISTORICALLY expr	{ $$ = create_operation( eHISTORICALLY, NULL, $2 );		}
+	| TOKEN_ONCE expr		{ $$ = create_operation( eONCE, NULL, $2 );		}
 	;
 
 %%
