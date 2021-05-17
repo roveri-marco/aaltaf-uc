@@ -134,10 +134,14 @@ ltlf_sat (int argc, char** argv)
   af = af->add_tail();
   // Rewrites weak next with N f <-> Tail | X f
   af = af->remove_wnext();
+  // Rewrites weak yesterday with Z f <-> ! Y !f
+  af = af->remove_wyesterday();
   // Simplify the formula
   af = af->simplify();
   // Pushes X over and/or operators
   af = af->split_next();
+  // Pushes Y over and/or operators
+  af = af->split_yesterday();
   cout << af->to_string() << endl;
   exit(1);
   t2 = chrono::high_resolution_clock::now();

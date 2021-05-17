@@ -1712,71 +1712,124 @@ aalta_formula* aalta_formula::add_tail() {
 
 
 aalta_formula*
-aalta_formula::split_next ()
-{
-	aalta_formula *l, *r, *res;
-	if (oper () == Next || oper () == WNext)
-	{
-		if (_right->oper () == And || _right->oper () == Or)
-		{
-			l = aalta_formula (oper (), NULL, _right->l_af ()).unique ();
-			r = aalta_formula (oper (), NULL, _right->r_af ()).unique ();
-			l = l->split_next ();
-			r = r->split_next ();
-			res = aalta_formula (_right->oper (), l, r).unique ();
-		}
-		else
-		{
-			r = _right->split_next ();
-			res = aalta_formula (oper (), NULL, r).unique ();
-			if (r->oper () != And && r->oper () != Or)
-				return res;
-			return res->split_next ();
-		}
-	}
-	else if (oper () > Undefined)
-		return this;
-	else
-	{
-		if (_left != NULL)
-			l = _left->split_next ();
-		else
-			l = NULL;
-		if (_right != NULL)
-			r = _right->split_next ();
-		else
-			r = NULL;
-		res = aalta_formula (oper (), l, r).unique ();
-	}
+aalta_formula::split_next() {
+  aalta_formula *l, *r, *res;
+  if (oper () == Next || oper () == WNext) {
+    if (_right->oper () == And || _right->oper () == Or) {
+      l = aalta_formula (oper (), NULL, _right->l_af ()).unique ();
+      r = aalta_formula (oper (), NULL, _right->r_af ()).unique ();
+      l = l->split_next ();
+      r = r->split_next ();
+      res = aalta_formula (_right->oper (), l, r).unique ();
+    }
+    else {
+      r = _right->split_next ();
+      res = aalta_formula (oper (), NULL, r).unique ();
+      if (r->oper () != And && r->oper () != Or)
 	return res;
+      return res->split_next ();
+    }
+  }
+  else if (oper () > Undefined)
+    return this;
+  else {
+    if (_left != NULL)
+      l = _left->split_next ();
+    else
+      l = NULL;
+    if (_right != NULL)
+      r = _right->split_next ();
+    else
+      r = NULL;
+    res = aalta_formula (oper (), l, r).unique ();
+  }
+  return res;
 }
 
 aalta_formula*
-aalta_formula::remove_wnext ()
-{
-
-	aalta_formula *res, *l, *r;
-	// N f <-> Tail | X f
-	if (oper () == WNext)
-	{
-		r = _right->remove_wnext ();
-		aalta_formula* tail = aalta_formula ("Tail").unique ();
-		aalta_formula* nf = aalta_formula (Next, NULL, r).unique ();
-		res = aalta_formula (Or, tail, nf).unique ();
-	}
-	else
-	{
-		if (_left != NULL)
-			l = _left->remove_wnext ();
-		else
-			l = NULL;
-		if (_right != NULL)
-			r = _right->remove_wnext ();
-		else
-			r = NULL;
-		res = aalta_formula (oper (), l, r).unique ();
-	}
+aalta_formula::split_yesterday() {
+  aalta_formula *l, *r, *res;
+  if (oper() == Yesterday || oper() == ZYesterday) {
+    if (_right->oper() == And || _right->oper() == Or) {
+      l = aalta_formula(oper(), NULL, _right->l_af()).unique();
+      r = aalta_formula(oper(), NULL, _right->r_af()).unique();
+      l = l->split_yesterday();
+      r = r->split_yesterday();
+      res = aalta_formula(_right->oper (), l, r).unique ();
+    }
+    else {
+      r = _right->split_yesterday();
+      res = aalta_formula(oper(), NULL, r).unique();
+      if (r->oper() != And && r->oper() != Or)
 	return res;
+      return res->split_yesterday();
+    }
+  }
+  else if (oper() > Undefined)
+    return this;
+  else {
+    if (_left != NULL)
+      l = _left->split_yesterday();
+    else
+      l = NULL;
+    if (_right != NULL)
+      r = _right->split_yesterday();
+    else
+      r = NULL;
+    res = aalta_formula(oper(), l, r).unique();
+  }
+  return res;
+}
+
+aalta_formula*
+aalta_formula::remove_wnext() {
+  aalta_formula *res, *l, *r;
+  // N f <-> Tail | X f
+  if (oper () == WNext) {
+    r = _right->remove_wnext ();
+    aalta_formula* tail = aalta_formula ("Tail").unique ();
+    aalta_formula* nf = aalta_formula (Next, NULL, r).unique ();
+    res = aalta_formula (Or, tail, nf).unique ();
+  }
+  else {
+    if (_left != NULL)
+      l = _left->remove_wnext ();
+    else
+      l = NULL;
+    if (_right != NULL)
+      r = _right->remove_wnext ();
+    else
+      r = NULL;
+    res = aalta_formula (oper (), l, r).unique ();
+  }
+  return res;
+}
+
+aalta_formula*
+aalta_formula::remove_wyesterday () {
+  aalta_formula *res, *l, *r;
+  // Z f <-> ! X !f
+  if (oper() == ZYesterday) {
+    aalta_formula * r = _right->remove_wyesterday();
+    if (r->oper() == Not)
+      r = r->r_af();
+    else
+      r = aalta_formula(Not, NULL, r).unique();
+    res = aalta_formula(Yesterday, NULL, r).unique();
+    res = aalta_formula(Not, NULL, res).unique();
+  }
+  else {
+    if (_left != NULL)
+      l = _left->remove_wyesterday();
+    else
+      l = NULL;
+    if (_right != NULL)
+      r = _right->remove_wyesterday();
+    else
+      r = NULL;
+    res = aalta_formula(oper(), l, r).unique();
+  }
+  return res;
 }
 
 aalta_formula* aalta_formula::TAIL_ = NULL;

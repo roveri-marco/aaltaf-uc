@@ -260,8 +260,14 @@ class aalta_formula
   //This function split Next subformula by /\ or \/. i.e. X(a/\ b) -> X a /\ X b
   //It is a necessary preprocessing for SAT-based checking
   aalta_formula* split_next ();
+  //This function split Yesterday subformula by /\ or \/. i.e. Y(a/\ b) -> Y a /\ Y b
+  //It is a necessary preprocessing for SAT-based checking
+  aalta_formula* split_yesterday();
+
   //replace weak next with next by N f <-> Tail | X f
   aalta_formula* remove_wnext ();
+  //replace weak yesterday with next by Z f <-> ! X !f
+  aalta_formula* remove_wyesterday ();
   static aalta_formula* TAIL ();
  private:
   static aalta_formula *TAIL_;
