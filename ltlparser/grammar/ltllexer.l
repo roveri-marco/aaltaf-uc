@@ -78,6 +78,7 @@ WS			[ \r\n\t]*
                           /* yylval->var_name = yytext;  We do not use pointer
                              to yytext to avoid possible bad parsing of objects! */
                           return TOKEN_VARIABLE; }
+"--".*                  { /* do nothing */ }
 
 .			{ fprintf(stderr, "\033[31mERROR\033[0m: Unrecognized symbol: \033[34m%s\033[0m\n", yytext); exit(1); }
 %%
