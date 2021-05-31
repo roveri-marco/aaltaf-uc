@@ -18,27 +18,30 @@
    Solver::Solver (aalta_formula *f, bool verbose, bool partial_on, bool uc_on) :
      AaltaSolver (verbose), uc_on_ (uc_on), partial_on_ (partial_on), unsat_forever_ (false)
    {
-     max_used_id_ = f->id ();
-     tail_ = aalta_formula::TAIL ()->id ();
-     build_X_map_priliminary (f);
+     // Initialized to the largest id of the overall formula
+     max_used_id_ = f->id();
+     tail_ = aalta_formula::TAIL()->id();
+     build_X_map_priliminary(f);
+     build_Y_map_priliminary(f);
      //tail_ = ++max_used_id_;
-     generate_clauses (f);
-     coi_set_up (f);
-     if (verbose_)
-       {
-	 cout << "id of input formula is " << f->id () << endl;
-	 cout << "tail_ is " << tail_ << endl;
-	 cout << "max_used_id_ is " << max_used_id_ << endl;
-	 cout << "//////////////////////////////////////////////////////\n";
-	 print_formula_map ();
-	 cout << "//////////////////////////////////////////////////////\n";
-	 print_x_map ();
-	 cout << "//////////////////////////////////////////////////////print coi ////////////////////////\n";
-	 print_coi ();
-	 cout << "//////////////////////////////////////////////////////\n";
-	 print_clauses ();
-	 cout << "//////////////////////////////////////////////////////\n";
-       }
+     generate_clauses(f);
+     coi_set_up(f);
+     if (verbose_) {
+       cout << "id of input formula is " << f->id () << endl;
+       cout << "tail_ is " << tail_ << endl;
+       cout << "max_used_id_ is " << max_used_id_ << endl;
+       cout << "//////////////////////////////////////////////////////\n";
+       print_formula_map();
+       cout << "//////////////////////////////////////////////////////\n";
+       print_x_map();
+       cout << "//////////////////////////////////////////////////////\n";
+       print_y_map();
+       cout << "//////////////////////////////////////////////////////print coi ////////////////////////\n";
+       print_coi ();
+       cout << "//////////////////////////////////////////////////////\n";
+       print_clauses ();
+       cout << "//////////////////////////////////////////////////////\n";
+     }
    }
 
    //generate clauses of SAT solver
@@ -47,7 +50,6 @@
      add_clauses_for (f);
      add_X_conflicts ();
    }
-
 
    //add clauses for the formula f into SAT solver
    void Solver::add_clauses_for (aalta_formula *f)
@@ -130,7 +132,7 @@
 		<< SAT_id (f->r_af ()) << " & " << id << endl;
 
 	 if (!f->is_globally ()) {
-	   add_equivalence (-id, -SAT_id (f->l_af ()), -tail_, -SAT_id_of_next (f));
+	   add_equivalence (-id, -SAT_id (f->l_af ()), -tail_, -SAT_id_of_next(f));
 	   if (verbose_)
 	     dout << "adding equivalence " << -id << " <-> "
 		  << -SAT_id (f->l_af ()) << " & " << -tail_
@@ -148,6 +150,74 @@
 	   add_clauses_for (f->r_af ());
 	 }
 	 mark_clauses_added (f);
+	 break;
+       case aalta_formula::Yesterday:
+	 build_Y_map(f);
+	 build_formula_map(f);
+	 add_equivalence(SAT_id(f->r_af()), SAT_id_of_pre(f));
+	 add_init(-SAT_id_of_pre(f));
+	 add_clauses_for(f->r_af());
+	 mark_clauses_added(f);
+	 break;
+       case aalta_formula::Since:
+	 // A S B = B \/ (A /\ Y (A S B))
+	 build_Y_map(f);
+	 build_formula_map(f);
+	 id = ++max_used_id_; // FV used for the encoding
+	 // A S B = B \/ (A /\ Y (A S B))
+	 // "!(A S B)" = !B /\ !FV
+	 // FV = (A /\ "Y (A S B)")
+	 add_equivalence(-SAT_id(f), -SAT_id(f->r_af()), -id);
+	 add_init(-SAT_id_of_pre(f));
+	 if (verbose_)
+	   dout << "adding equivalence " << -SAT_id(f)
+		<< " <-> " << -SAT_id (f->r_af()) << " & "
+		<< -id << endl;
+	 if (!f->is_once()) {
+	   add_equivalence(id, SAT_id(f->l_af()), SAT_id_of_pre(f));
+	   if (verbose_)
+	     dout << "adding equivalence " << id
+		  << " <-> " << -SAT_id(f->l_af()) << " & "
+		  << SAT_id_of_pre(f) << endl;
+	   add_clauses_for(f->l_af());
+	   add_clauses_for(f->r_af());
+	 }
+	 else { // O B = B \/ Y O B
+	   add_equivalence (id, SAT_id_of_pre(f));
+	   if (verbose_)
+	     dout << "adding equivalence " << id << " <-> "
+		  << SAT_id_of_pre(f) << endl;
+	   add_clauses_for(f->r_af());
+	 }
+	 mark_clauses_added(f);
+	 break;
+       case aalta_formula::Trigger:
+	 // A T B = B /\ (A \/ Y (A T B))
+	 build_Y_map(f);
+	 build_formula_map(f);
+	 id = ++max_used_id_; // FV used for the encoding
+	 // A T B = B /\ (A \/ Y (A T B))
+	 // "A T B" = B /\ FV
+	 // !FV = (!A /\ !"Y (A S B)")
+	 add_equivalence(SAT_id(f), SAT_id(f->r_af()), id);
+	 add_init(-SAT_id_of_pre(f));
+	 if (!f->is_historically()) {
+	   add_equivalence(-id, -SAT_id(f->l_af()), -SAT_id_of_pre(f));
+	   if (verbose_)
+	     dout << "adding equivalence " << -id
+		  << " <-> " << -SAT_id(f->l_af()) << " & "
+		  << -SAT_id_of_pre(f) << endl;
+	   add_clauses_for(f->l_af());
+	   add_clauses_for(f->r_af());
+	 }
+	 else {// H B = B /\ Y H B
+	   add_equivalence (-id, -SAT_id_of_pre(f));
+	   if (verbose_)
+	     dout << "adding equivalence " << -id << " <-> "
+		  << -SAT_id_of_pre(f) << endl;
+	   add_clauses_for(f->r_af());
+	 }
+	 mark_clauses_added(f);
 	 break;
 
        case aalta_formula::And:
@@ -187,13 +257,13 @@
    void Solver::coi_set_up (aalta_formula *f)
    {
      std::vector<int> ids;
-     compute_full_coi (f, ids);
+     compute_full_coi(f, ids);
      //only Until, Release, And, Or formulas need to be recorded
      //delete from coi_map_ all ids in \@ids
-     shrink_coi (ids);
+     shrink_coi(ids);
    }
 
-   void Solver::compute_full_coi (aalta_formula *f, std::vector<int>& ids)
+   void Solver::compute_full_coi(aalta_formula *f, std::vector<int>& ids)
    {
      if (coi_map_.find (f->id ()) != coi_map_.end ())
        return;
@@ -203,57 +273,62 @@
      x_map::iterator xit;
      v.resize (max_used_id_, 0);
      int id = f->id ();
-     switch (f->oper ())
-       {
-       case aalta_formula::Not:  //id -> id for Literals
-	 if (f->r_af () != NULL)
-	   {
-	     compute_full_coi (f->r_af (), ids);
-	     it = coi_map_.find (f->r_af ()->id ());
-	     assert (it != coi_map_.end ());
-	     coi_merge (v, it->second);
-	     coi_map_.insert (std::pair<int, std::vector<int> >(id, v));
-	     ids.push_back (id);
-	     break;
-	   }
-
-       case aalta_formula::Until:
-       case aalta_formula::Release:
-	 //add Xf in COI for Until/Release formula f
-	 xit = X_map_.find (SAT_id (f));
-	 assert (xit != X_map_.end ());
-	 v [xit->second -1] = 1;
-       case aalta_formula::And:
-       case aalta_formula::Or:
-	 compute_full_coi (f->l_af (), ids);
-	 it = coi_map_.find (f->l_af ()->id ());
-	 assert (it != coi_map_.end ());
-	 coi_merge (v, it->second);
-
-	 compute_full_coi (f->r_af (), ids);
-	 it = coi_map_.find (f->r_af ()->id ());
-	 assert (it != coi_map_.end ());
-	 coi_merge (v, it->second);
-	 coi_map_.insert (std::pair<int, std::vector<int> >(id, v));
-	 if (f->oper () == aalta_formula::And)
-	   ids.push_back (id);
-	 break;
-       case aalta_formula::Undefined:
-	 {
-	   cout << "solver.cpp: Error reach here!\n";
-	   exit (0);
-	 }
-       case aalta_formula::Next:
-       default: //atoms
-	 if (f->r_af () != NULL)
+     switch (f->oper ()) {
+     case aalta_formula::Not:  //id -> id for Literals
+       if (f->r_af() != NULL) {
 	   compute_full_coi (f->r_af (), ids);
-	 v [id-1] = 1;
-	 coi_map_.insert (std::pair<int, std::vector<int> >(id, v));
-	 ids.push_back (id);
-
-	 break;
+	   it = coi_map_.find (f->r_af ()->id ());
+	   assert (it != coi_map_.end ());
+	   coi_merge (v, it->second);
+	   coi_map_.insert (std::pair<int, std::vector<int> >(id, v));
+	   ids.push_back (id);
+	   break;
+	 }
+     case aalta_formula::Until:
+     case aalta_formula::Release:
+       //add Xf in COI for Until/Release formula f
+       xit = X_map_.find(SAT_id (f));
+       assert(xit != X_map_.end());
+       v[xit->second - 1] = 1;
+     case aalta_formula::Since:
+     case aalta_formula::Trigger:
+       if ((f->oper() == aalta_formula::Since) ||
+	   (f->oper() == aalta_formula::Trigger)) {
+	 //add Yf in COI for Since/Trigger formula f
+	 xit = Y_map_.find(SAT_id(f));
+	 assert(xit != Y_map_.end());
+	 v[xit->second - 1] = 1;
        }
+     case aalta_formula::And:
+     case aalta_formula::Or:
+       compute_full_coi(f->l_af(), ids);
+       it = coi_map_.find(f->l_af()->id ());
+       assert(it != coi_map_.end());
+       coi_merge(v, it->second);
 
+       compute_full_coi(f->r_af(), ids);
+       it = coi_map_.find(f->r_af()->id());
+       assert(it != coi_map_.end());
+       coi_merge(v, it->second);
+       coi_map_.insert(std::pair<int, std::vector<int>>(id, v));
+       if (f->oper() == aalta_formula::And)
+	 ids.push_back (id);
+       break;
+     case aalta_formula::Undefined:
+       {
+	 cout << "solver.cpp: Error reach here!\n";
+	 exit(0);
+       }
+     case aalta_formula::Next:
+     case aalta_formula::Yesterday:
+     default: //atoms
+       if (f->r_af() != NULL)
+	 compute_full_coi(f->r_af(), ids);
+       v [id-1] = 1;
+       coi_map_.insert(std::pair<int, std::vector<int>>(id, v));
+       ids.push_back(id);
+       break;
+     }
    }
 
    //delete from coi_map_ all ids in \@ids
@@ -453,19 +528,33 @@
    //set X_map_ in the input-formula level
    void Solver::build_X_map_priliminary (aalta_formula* f)
    {
-     if (f->oper () == aalta_formula::Next)
-       {
-	 if (X_map_.find (f->r_af ()->id ()) == X_map_.end ())
-	   X_map_.insert (std::pair<int, int> (f->r_af ()->id (), f->id ()));
+     if (f->oper () == aalta_formula::Next) {
+       if (X_map_.find (f->r_af ()->id ()) == X_map_.end ())
+	 X_map_.insert (std::pair<int, int> (f->r_af ()->id (), f->id ()));
+       build_X_map_priliminary (f->r_af ());
+     }
+     else {
+       if (f->l_af () != NULL)
+	 build_X_map_priliminary (f->l_af ());
+       if (f->r_af () != NULL)
 	 build_X_map_priliminary (f->r_af ());
-       }
-     else
-       {
-	 if (f->l_af () != NULL)
-	   build_X_map_priliminary (f->l_af ());
-	 if (f->r_af () != NULL)
-	   build_X_map_priliminary (f->r_af ());
-       }
+     }
+   }
+
+   //set X_map_ in the input-formula level
+   void Solver::build_Y_map_priliminary (aalta_formula* f)
+   {
+     if (f->oper() == aalta_formula::Yesterday) {
+       if (Y_map_.find(f->r_af()->id()) == X_map_.end())
+	 X_map_.insert(std::pair<int, int>(f->r_af()->id(), f->id()));
+       build_Y_map_priliminary(f->r_af());
+     }
+     else {
+       if (f->l_af() != NULL)
+	 build_Y_map_priliminary(f->l_af());
+       if (f->r_af() != NULL)
+	 build_Y_map_priliminary(f->r_af());
+     }
    }
 
    void Solver::build_X_map (aalta_formula *f)
@@ -477,10 +566,26 @@
      X_reverse_map_.insert (std::pair<int, aalta_formula*> (max_used_id_, f));
    }
 
+   void Solver::build_Y_map(aalta_formula *f)
+   {
+     assert(f->oper() == aalta_formula::Since || f->oper() == aalta_formula::Trigger);
+     if (Y_map_.find(f->id()) != X_map_.end())
+       return;
+     Y_map_.insert(std::pair<int, int> (f->id(), ++max_used_id_));
+     Y_reverse_map_.insert(std::pair<int, aalta_formula*>(max_used_id_, f));
+   }
+
    int Solver::SAT_id_of_next (aalta_formula *f)
    {
      x_map::iterator it = X_map_.find (f->id ());
      assert (it != X_map_.end());
+     return it->second;
+   }
+
+   int Solver::SAT_id_of_pre(aalta_formula *f)
+   {
+     x_map::iterator it = Y_map_.find(f->id());
+     assert (it != Y_map_.end());
      return it->second;
    }
 
@@ -616,6 +721,13 @@
        cout << it->first << " -> " << it->second << endl;
      cout << "N_map_ :\n";
      for (x_map::iterator it = N_map_.begin (); it != N_map_.end (); it ++)
+       cout << it->first << " -> " << it->second << endl;
+   }
+
+   void Solver::print_y_map ()
+   {
+     cout << "Y_map_ :\n";
+     for (x_map::iterator it = Y_map_.begin (); it != Y_map_.end (); it ++)
        cout << it->first << " -> " << it->second << endl;
    }
 

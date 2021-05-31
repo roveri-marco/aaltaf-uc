@@ -81,13 +81,15 @@ namespace aalta
 
     typedef hash_map<int, int> x_map;
     x_map X_map_;   //if (1, 2) is in X_map_, that means 2 = X 1;
+    x_map Y_map_;   //if (1, 2) is in Y_map_, that means 2 = Y 1;
     x_map N_map_;   //if (1, 2) is in N_map_, that means 2 = N 1;
     typedef hash_map<int, aalta_formula*> formula_map;
     //if (1, a) is in formula_map_, that means SAT_id (a) == 1
     //we need to store literals (including atoms), Next (WNext), Until, Release and Or
     formula_map formula_map_;
     typedef hash_map<int, aalta_formula*> x_reverse_map;
-    x_reverse_map X_reverse_map_;  //if (4, f) is in the map, that means SAT_id (Xf) = 4, here f is a Until/Release formula
+    x_reverse_map X_reverse_map_;  //if (4, f) is in the map, that means SAT_id(Xf) = 4, here f is a Until/Release formula
+    x_reverse_map Y_reverse_map_; // if (4, f) is in the map, that means SAT_id(Yf) = 4, here f is a Until/Release formula
 
     typedef hash_map<int, std::vector<int> > coi_map;
     coi_map coi_map_;   //if (1, v) is in coi_map_, that means coi (1) = v;
@@ -95,6 +97,7 @@ namespace aalta
     // To maintain mapping of SAT lit to corresponding formula
     formula_map ext_assumption_map_;
 
+    vector<int> initial_;
 
     /////flags
     //bool verbose_;  //default is false
@@ -106,8 +109,11 @@ namespace aalta
 
     //////////functions
     void build_X_map (aalta_formula *f);
+    void build_Y_map (aalta_formula *f);
     void build_X_map_priliminary (aalta_formula *f);
+    void build_Y_map_priliminary (aalta_formula *f);
     int SAT_id_of_next (aalta_formula *f);  //return the id of Xf used in SAT solver
+    int SAT_id_of_pre (aalta_formula *f);  //return the id of Yf used in SAT solver
     int SAT_id_of_weak_next (aalta_formula *f);  //return the id of Nf used in SAT solver
 
     void block_elements (const af_prt_set& ands);
@@ -142,10 +148,9 @@ namespace aalta
 
     ////printers
     void print_x_map ();
+    void print_y_map ();
     void print_coi ();
     void print_formula_map ();
-
-
 
     ///////////inline functions
     inline bool clauses_added (aalta_formula* f)
@@ -160,7 +165,11 @@ namespace aalta
       clauses_added_.insert (f);
     }
 
-
+    inline void add_init(int i)
+    { // Add literal i for the initial value of the past variable
+      // corresponding to the formula associated to i
+      initial_.push_back(i);
+    }
 
     inline void build_formula_map (aalta_formula* f)
     {

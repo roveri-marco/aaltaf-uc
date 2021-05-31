@@ -142,8 +142,6 @@ ltlf_sat (int argc, char** argv)
   af = af->split_next();
   // Pushes Y over and/or operators
   af = af->split_yesterday();
-  cout << af->to_string() << endl;
-  exit(1);
   t2 = chrono::high_resolution_clock::now();
   cout << "-- Preprocessing time: "
        << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)
