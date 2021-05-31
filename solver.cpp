@@ -129,26 +129,24 @@
 	   dout << "adding equivalence " << SAT_id (f) << " <-> "
 		<< SAT_id (f->r_af ()) << " & " << id << endl;
 
-	 if (!f->is_globally ())
-	   {
-	     add_equivalence (-id, -SAT_id (f->l_af ()), -tail_, -SAT_id_of_next (f));
-	     if (verbose_)
-	       dout << "adding equivalence " << -id << " <-> "
-		    << -SAT_id (f->l_af ()) << " & " << -tail_
-		    << " & " << -SAT_id_of_next (f) << endl;
+	 if (!f->is_globally ()) {
+	   add_equivalence (-id, -SAT_id (f->l_af ()), -tail_, -SAT_id_of_next (f));
+	   if (verbose_)
+	     dout << "adding equivalence " << -id << " <-> "
+		  << -SAT_id (f->l_af ()) << " & " << -tail_
+		  << " & " << -SAT_id_of_next (f) << endl;
 
-	     add_clauses_for (f->l_af ());
-	     add_clauses_for (f->r_af ());
-	   }
-	 else //G B = B /\ (Tail \/ X (G B))
-	   {
-	     add_equivalence (-id, -tail_, -SAT_id_of_next (f));
-	     if (verbose_)
-	       dout << "adding equivalence " << -id << " <-> "
-		    << -tail_ << " & " << -SAT_id_of_next (f) << endl;
+	   add_clauses_for (f->l_af ());
+	   add_clauses_for (f->r_af ());
+	 }
+	 else { //G B = B /\ (Tail \/ X (G B))
+	   add_equivalence (-id, -tail_, -SAT_id_of_next (f));
+	   if (verbose_)
+	     dout << "adding equivalence " << -id << " <-> "
+		  << -tail_ << " & " << -SAT_id_of_next (f) << endl;
 
-	     add_clauses_for (f->r_af ());
-	   }
+	   add_clauses_for (f->r_af ());
+	 }
 	 mark_clauses_added (f);
 	 break;
 
