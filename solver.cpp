@@ -86,40 +86,44 @@
 	 //A U B = B \/ (A /\ !Tail /\ X (A U B))
 	 build_X_map (f);
 	 build_formula_map (f);
-	 id = ++max_used_id_;
+	 id = ++max_used_id_; // FV used for the encoding
+	 // !(A U B) = !B /\ !(A /\ !Tail /\ X (A U B))
+	 // !"(A U B)" = !B /\ !FV
+	 // FV = A /\ !Tail /\ "X (A U B)"
 	 add_equivalence (-SAT_id (f), -SAT_id (f->r_af ()), -id);
 	 if (verbose_)
 	   dout << "adding equivalence " << -SAT_id (f)
 		<< " <-> " << -SAT_id (f->r_af ()) << " & "
 		<< -id << endl;
 
-	 if (!f->is_future ())
-	   {
-	     add_equivalence (id, SAT_id (f->l_af ()), -tail_, SAT_id_of_next (f));
-	     if (verbose_)
-	       dout << "adding equivalence " << id << " <-> "
-		    << -SAT_id (f->l_af ()) << " & " << -tail_
-		    << " & " << SAT_id_of_next (f) << endl;
+	 if (!f->is_future ()) {
+	   add_equivalence (id, SAT_id (f->l_af ()), -tail_, SAT_id_of_next (f));
+	   if (verbose_)
+	     dout << "adding equivalence " << id << " <-> "
+		  << SAT_id (f->l_af ()) << " & " << -tail_
+		  << " & " << SAT_id_of_next (f) << endl;
 
-	     add_clauses_for (f->l_af ());
-	     add_clauses_for (f->r_af ());
-	   }
-	 else //F B = B \/ (!Tail /\ X (F B))
-	   {
-	     add_equivalence (id, -tail_, SAT_id_of_next (f));
-	     if (verbose_)
-	       dout << "adding equivalence " << id << " <-> "
-		    << -tail_ << " & " << SAT_id_of_next (f) << endl;
+	   add_clauses_for (f->l_af ());
+	   add_clauses_for (f->r_af ());
+	 }
+	 else { //F B = B \/ (!Tail /\ X (F B))
+	   add_equivalence (id, -tail_, SAT_id_of_next (f));
+	   if (verbose_)
+	     dout << "adding equivalence " << id << " <-> "
+		  << -tail_ << " & " << SAT_id_of_next (f) << endl;
 
-	     add_clauses_for (f->r_af ());
-	   }
+	   add_clauses_for (f->r_af ());
+	 }
 	 mark_clauses_added (f);
 	 break;
        case aalta_formula::Release:
 	 //A R B = B /\ (A \/ Tail \/ X (A R B))
 	 build_X_map (f);
 	 build_formula_map (f);
-	 id = ++max_used_id_;
+	 id = ++max_used_id_; // FV used for the encoding
+	 // A R B = B /\ (A \/ Tail \/ X (A R B))
+	 // "(A U B)" = B /\ FV
+	 // !FV = (!A /\ !Tail /\ !"X (A R B)")
 	 add_equivalence (SAT_id (f), SAT_id (f->r_af ()), id);
 	 if (verbose_)
 	   dout << "adding equivalence " << SAT_id (f) << " <-> "
