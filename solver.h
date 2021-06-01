@@ -117,7 +117,7 @@ namespace aalta
     int SAT_id_of_weak_next (aalta_formula *f);  //return the id of Nf used in SAT solver
 
     void block_elements (const af_prt_set& ands);
-    bool block_discard_able (const af_prt_set& ands);
+    bool block_X_discard_able (const af_prt_set& ands);
     aalta_formula::af_prt_set formula_set_of (std::vector<int>& v);
 
 
