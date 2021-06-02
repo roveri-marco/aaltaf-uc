@@ -1947,6 +1947,7 @@ aalta_formula::remove_past_aux(aalta_formula * formula) {
   case Until:
   case Release:
   case Next:
+  case WNext:
     // We do nothing in these cases
     return aalta_formula(formula->oper(), l, r).unique();
     break;
