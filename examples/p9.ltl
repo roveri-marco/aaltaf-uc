@@ -1,7 +1,7 @@
-P0 := c;
+P0 := G !q;
 P3 := X G ( c -> H q);
-P9 := X F ( d -> O z);
-P1 := X G ( a -> X b)  && G (a -> X !b);
-P2 := X F a;
-P4 := X (a T b);
+-- P9 := X F ( d -> O z);
+-- P1 := X G ( a -> X b)  && G (a -> X !b);
+P2 := X X X c;
+-- P4 := X X X (a S b);
 -- This is a comment
