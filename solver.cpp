@@ -22,7 +22,7 @@
      max_used_id_ = f->id();
      tail_ = aalta_formula::TAIL()->id();
      build_X_map_priliminary(f);
-     build_Y_map_priliminary(f);
+     //     build_Y_map_priliminary(f);
      //tail_ = ++max_used_id_;
      generate_clauses(f);
      coi_set_up(f);
@@ -153,35 +153,38 @@
 	 mark_clauses_added(f);
 	 break;
        case aalta_formula::Yesterday:
+#if 0
 	 // trans: X "Y A" <-> A
 	 // init: ! "Y A"
-	 build_Y_map(f);
+	 build_X_map(f);
 	 build_formula_map(f);
-	 add_equivalence(SAT_id(f->r_af()), SAT_id_of_pre(f));
+	 add_equivalence(SAT_id_of_next(f), SAT_id(f->r_af()));
 	 if (verbose_)
-	   dout << "adding equivalence " << SAT_id_of_pre(f) << " <-> "
+	   dout << "adding equivalence " << SAT_id_of_next(f) << " <-> "
 		<< SAT_id(f->r_af()) << endl;
-	 add_init(-SAT_id_of_pre(f));
+	 add_init(-SAT_id(f));
 	 add_clauses_for(f->r_af());
 	 mark_clauses_added(f);
 	 break;
+#endif
        case aalta_formula::Since:
+#if 0
 	 // A S B = B \/ (A /\ Y (A S B))
 	 // trans: X "Y (A S B)" = B \/ (A /\ "Y (A S B)")
 	 // init: !"Y (A S B)"
-	 build_Y_map(f);
+	 build_X_map(f);
 	 build_formula_map(f);
 	 id = ++max_used_id_; // FV used for the encoding
 	 // A S B = B \/ (A /\ Y (A S B))
 	 // "!(A S B)" = !B /\ !FV
 	 // FV = (A /\ "Y (A S B)")
-	 add_equivalence(-SAT_id_of_pre(f), -SAT_id(f->r_af()), -id);
+	 add_equivalence(-SAT_id_of_next(f), -SAT_id(f->r_af()), -id);
 	 if (verbose_)
-	   dout << "adding equivalence " << -SAT_id_of_pre(f) << " <-> "
+	   dout << "adding equivalence " << -SAT_id_of_next(f) << " <-> "
 		<< -SAT_id(f->r_af()) << " & " << -id << endl;
-	 add_init(-SAT_id_of_pre(f));
+	 add_init(-SAT_id(f));
 	 if (verbose_)
-	   dout << "adding equivalence " << -SAT_id_of_pre(f)
+	   dout << "adding equivalence " << -SAT_id_of_next(f)
 		<< " <-> " << -SAT_id(f->r_af()) << " & "
 		<< -id << endl;
 	 if (!f->is_once()) {
@@ -202,21 +205,23 @@
 	 }
 	 mark_clauses_added(f);
 	 break;
+#endif
        case aalta_formula::Trigger:
+#if 0
 	 // A T B = B /\ (A \/ Y (A T B))
 	 // trans: X "Y (A T B)" = B /\ (A \/ "Y (A T B)")
 	 // init: !"Y (A T B)"
-	 build_Y_map(f);
+	 build_X_map(f);
 	 build_formula_map(f);
 	 id = ++max_used_id_; // FV used for the encoding
 	 // A T B = B /\ (A \/ Y (A T B))
 	 // "A T B" = B /\ FV
 	 // !FV = (!A /\ !"Y (A S B)")
-	 add_equivalence(SAT_id_of_pre(f), SAT_id(f->r_af()), id);
+	 add_equivalence(SAT_id_of_next(f), SAT_id(f->r_af()), id);
 	 if (verbose_)
-	   dout << "adding equivalence " << SAT_id_of_pre(f) << " <-> "
+	   dout << "adding equivalence " << SAT_id_of_next(f) << " <-> "
 		<< SAT_id(f->r_af()) << " & " << id << endl;
-	 add_init(-SAT_id_of_pre(f));
+	 add_init(-SAT_id(f));
 	 if (!f->is_historically()) {
 	   add_equivalence(-id, -SAT_id(f->l_af()), -SAT_id(f));
 	   if (verbose_)
@@ -234,6 +239,9 @@
 	   add_clauses_for(f->r_af());
 	 }
 	 mark_clauses_added(f);
+	 break;
+#endif
+	 assert(false);
 	 break;
 
        case aalta_formula::And:
@@ -310,8 +318,8 @@
        if ((f->oper() == aalta_formula::Since) ||
 	   (f->oper() == aalta_formula::Trigger)) {
 	 //add Yf in COI for Since/Trigger formula f
-	 xit = Y_map_.find(SAT_id(f));
-	 assert(xit != Y_map_.end());
+	 xit = X_map_.find(SAT_id(f));
+	 assert(xit != X_map_.end());
 	 v[xit->second - 1] = 1;
        }
      case aalta_formula::And:
@@ -442,9 +450,6 @@
 	 x_reverse_map::iterator it2 = X_reverse_map_.find(*it);
 	 if (it2 != X_reverse_map_.end())
 	   nexts.push_back(it2->second);
-	 it2 = Y_reverse_map_.find(*it);
-	 if (it2 != Y_reverse_map_.end())
-	   nexts.push_back(it2->second);
        }
      }
      if (verbose_)
@@ -553,8 +558,8 @@
    void Solver::build_Y_map_priliminary(aalta_formula* f)
    {
      if (f->oper() == aalta_formula::Yesterday) {
-       if (Y_map_.find(f->r_af()->id()) == X_map_.end())
-	 X_map_.insert(std::pair<int, int>(f->r_af()->id(), f->id()));
+       if (Y_map_.find(f->r_af()->id()) == Y_map_.end())
+	 Y_map_.insert(std::pair<int, int>(f->r_af()->id(), f->id()));
        build_Y_map_priliminary(f->r_af());
      }
      else {
@@ -567,17 +572,28 @@
 
    void Solver::build_X_map(aalta_formula *f)
    {
-     assert(f->oper() == aalta_formula::Until || f->oper() == aalta_formula::Release);
+     assert(f->oper() == aalta_formula::Until ||
+	    f->oper() == aalta_formula::Release ||
+	    f->oper() == aalta_formula::Since ||
+	    f->oper() == aalta_formula::Trigger ||
+	    f->oper() == aalta_formula::Yesterday);
      if (X_map_.find(f->id()) != X_map_.end())
        return;
      X_map_.insert(std::pair<int, int>(f->id(), ++max_used_id_));
      X_reverse_map_.insert(std::pair<int, aalta_formula*>(max_used_id_, f));
+     // We keep track if the formula is a since/trigger/yesterday
+     if (f->oper() == aalta_formula::Trigger ||
+	 f->oper() == aalta_formula::Since ||
+	 f->oper() == aalta_formula::Yesterday) {
+       Y_map_.insert(std::pair<int, int>(f->id(), max_used_id_));
+       Y_reverse_map_.insert(std::pair<int, aalta_formula*>(max_used_id_, f));
+     }
    }
 
    void Solver::build_Y_map(aalta_formula *f)
    {
      assert(f->oper() == aalta_formula::Since || f->oper() == aalta_formula::Trigger);
-     if (Y_map_.find(f->id()) != X_map_.end())
+     if (Y_map_.find(f->id()) != Y_map_.end())
        return;
      Y_map_.insert(std::pair<int, int>(f->id(), ++max_used_id_));
      Y_reverse_map_.insert(std::pair<int, aalta_formula*>(max_used_id_, f));
@@ -658,8 +674,6 @@
      }
      return false;
    }
-
-
 
    //set assumption_ of SAT solver from \@ f.
    //If \@ global is true, set assumption_ with only global parts of \@ f

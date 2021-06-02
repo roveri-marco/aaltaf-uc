@@ -136,6 +136,9 @@ ltlf_sat (int argc, char** argv)
   af = af->remove_wnext();
   // Rewrites weak yesterday with Z f <-> ! Y !f
   af = af->remove_wyesterday();
+  // We remove the past and add the respective tableau variables and
+  // tableau transition system (/\_i init_i G(/\_i trans_i)
+  af = af->remove_past();
   // Simplify the formula
   af = af->simplify();
   // Pushes X over and/or operators
