@@ -28,6 +28,7 @@ namespace aalta
 // 开始静态部分
 /* 初始化静态变量 */
 std::vector<std::string> aalta_formula::names;
+std::vector<std::pair<aalta_formula *, aalta_formula *>> aalta_formula::monitor;
 hash_map<std::string, int> aalta_formula::ids;
 //aalta_formula::af_prt_map aalta_formula::all_afs;
 aalta_formula::afp_set aalta_formula::all_afs;
@@ -1830,6 +1831,130 @@ aalta_formula::remove_wyesterday () {
     res = aalta_formula(oper(), l, r).unique();
   }
   return res;
+}
+
+aalta_formula * aalta_formula::remove_past() {
+  monitor.clear();
+  std::cout << this->to_string() << std::endl;
+
+  aalta_formula * res = remove_past_aux(this);
+
+  std::cout << res->to_string() << std::endl;
+
+  aalta_formula * trans = NULL;
+  for (auto it = monitor.begin(); it != monitor.end(); it++) {
+    res = aalta_formula(And, res, (*it).first).unique();
+    if (trans == NULL) {
+      trans = (*it).second;
+    } else {
+      trans = aalta_formula(And, trans, (*it).second).unique();
+    }
+  }
+  if (trans != NULL) {
+    res = aalta_formula(And, res,
+			aalta_formula(Release, FALSE(), trans).unique()).unique();
+  }
+  std::cout << res->to_string() << std::endl;
+  return res;
+}
+
+aalta_formula *
+aalta_formula::remove_past_aux(aalta_formula * formula) {
+  aalta_formula *res, *l, *r;
+  assert(formula != NULL);
+  if (formula->l_af() != NULL) {
+    l = remove_past_aux(formula->l_af());
+  } else {
+    l = NULL;
+  }
+  if (formula->r_af() != NULL) {
+    r = remove_past_aux(formula->r_af());
+  } else {
+    r = NULL;
+  }
+  // It is a variable
+  if (l == NULL && r == NULL) return formula->unique();
+  // It is not a variable
+  switch(formula->oper()) {
+  case Yesterday:  {
+    assert(l == NULL);
+    // ! name & G (X name <->  r)
+    aalta_formula * name = aalta_formula(monitor.size()).unique();
+    aalta_formula * init = aalta_formula(Not, NULL, name).unique(); // !name
+    aalta_formula * nname = aalta_formula(Next, name, name).unique();
+    aalta_formula * trans = aalta_formula(And,
+					  aalta_formula(Or,
+							aalta_formula(Not, NULL, nname).unique(),
+							r).unique(),
+					  aalta_formula(Or,
+							nname,
+							aalta_formula(Not, NULL, r).unique()).unique()).unique();
+    monitor.push_back(std::pair<aalta_formula *, aalta_formula *>(init, trans));
+    return name;
+  }
+  case Since:  {
+    assert(l != NULL && r != NULL);
+    // here nameXY is the name for Y(A S B)
+    // ! nameXY & G (X nameXY <->  r | (l & nameXY))
+    // return r | (l & nameXY)
+    aalta_formula * nameXY = aalta_formula(monitor.size()).unique();
+    aalta_formula * name = aalta_formula(Or, r,
+					 ((l->oper() == True) ? nameXY:
+					  aalta_formula(And, l, nameXY).unique())).unique();
+    aalta_formula * init = aalta_formula(Not, NULL, nameXY).unique();
+    aalta_formula * nnameXY = aalta_formula(Next, NULL, nameXY).unique();
+    aalta_formula * trans = aalta_formula(And,
+					  aalta_formula(Or,
+							aalta_formula(Not, NULL, nnameXY).unique(),
+							name).unique(),
+					  aalta_formula(Or,
+							nnameXY,
+							aalta_formula(Not, NULL, name).unique()).unique()).unique();
+
+    monitor.push_back(std::pair<aalta_formula *, aalta_formula *>(init, trans));
+    return name;
+  }
+  case Trigger: {
+    assert(l != NULL && r != NULL);
+    // A T B <-> !(!A S !B) here nameXY is the name for Y(!A S !B)
+    // ! nameXY & G (X nameXY <->  !r | (!l & nameXY))
+    // return !(!r | (!l & nameXY))
+    aalta_formula * nameXY = aalta_formula(monitor.size()).unique();
+    aalta_formula * name = aalta_formula(Or, aalta_formula(Not, NULL, r).unique(),
+					 ((l->oper() == False) ? nameXY:
+					  aalta_formula(And,
+							aalta_formula(Not, NULL, r).unique(),
+							nameXY).unique())).unique();
+    aalta_formula * init = aalta_formula(Not, NULL, nameXY).unique();
+    aalta_formula * nnameXY = aalta_formula(Next, NULL, nameXY).unique();
+    aalta_formula * trans = aalta_formula(And,
+					  aalta_formula(Or,
+							aalta_formula(Not, NULL, nnameXY).unique(),
+							name).unique(),
+					  aalta_formula(Or,
+							nnameXY,
+							aalta_formula(Not, NULL, name).unique()).unique()).unique();
+
+    monitor.push_back(std::pair<aalta_formula *, aalta_formula *>(init, trans));
+    return aalta_formula(Not, NULL, name).unique();
+  }
+  case True:
+  case False:
+  case Literal:
+  case And:
+  case Or:
+  case Not:
+  case Until:
+  case Release:
+  case Next:
+    // We do nothing in these cases
+    return aalta_formula(formula->oper(), l, r).unique();
+    break;
+  default:
+    assert(false);
+  }
+  assert(false);
+  return NULL;
 }
 
 aalta_formula* aalta_formula::TAIL_ = NULL;

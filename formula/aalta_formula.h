@@ -141,6 +141,9 @@ class aalta_formula
   static tag_set all_tags; // 所有tag的集合
   static aalta_formula *_TRUE;
   static aalta_formula *_FALSE;
+  // To store the monitor used for replacing the past operators
+  static std::vector<std::pair<aalta_formula *,aalta_formula *>> monitor;
+
   //////////////////////////////////////////////////
 
  public:
@@ -243,7 +246,7 @@ class aalta_formula
   static aalta_formula *simplify_or (aalta_formula *l, aalta_formula *r);
   static aalta_formula *simplify_until (aalta_formula *l, aalta_formula *r);
   static aalta_formula *simplify_release (aalta_formula *l, aalta_formula *r);
-
+  static aalta_formula *remove_past_aux (aalta_formula * l);
  public:
   static aalta_formula *simplify_and (aalta_formula *l, aalta_formula *r);
   static aalta_formula *simplify_and_weak (aalta_formula *l, aalta_formula *r);
@@ -269,7 +272,12 @@ class aalta_formula
   //replace weak yesterday with next by Z f <-> ! X !f
   aalta_formula* remove_wyesterday ();
   static aalta_formula* TAIL ();
- private:
+
+  // Convert formula with past operator in equisat formula over pure
+  // future
+  aalta_formula * remove_past();
+
+private:
   static aalta_formula *TAIL_;
 
 
