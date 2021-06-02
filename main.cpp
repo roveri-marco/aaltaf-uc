@@ -131,14 +131,15 @@ ltlf_sat (int argc, char** argv)
   }
   // Converts formula in NNF
   af = af->nnf();
-  af = af->add_tail();
-  // Rewrites weak next with N f <-> Tail | X f
-  af = af->remove_wnext();
   // Rewrites weak yesterday with Z f <-> ! Y !f
   af = af->remove_wyesterday();
   // We remove the past and add the respective tableau variables and
   // tableau transition system (/\_i init_i G(/\_i trans_i)
   af = af->remove_past();
+  // Add tail
+  af = af->add_tail();
+  // Rewrites weak next with N f <-> Tail | X f
+  af = af->remove_wnext();
   // Simplify the formula
   af = af->simplify();
   // Pushes X over and/or operators
