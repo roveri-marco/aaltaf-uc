@@ -19,7 +19,7 @@ ltlf2ltl:	$(PARSERCFILES)
 		bison ../grammar/ltlparser.y
 
 run:	$(ALLCFILES)
-	$(CC) $(INCLUDE) $(ALLCFILES) -o ltlf2ltl
+	$(CC) -g $(INCLUDE) $(ALLCFILES) -o ltlf2ltl
 
 run_debug:  $(ALLCFILES)
 	    $(CC) $(INCLUDE) $(CDEBUG) $(ALLCFILES) -o ltl2ltl

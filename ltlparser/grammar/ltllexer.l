@@ -80,7 +80,7 @@ WS			[ \r\n\t]*
                           return TOKEN_VARIABLE; }
 "--".*                  { /* do nothing */ }
 
-.			{ fprintf(stderr, "\033[31mERROR\033[0m: Unrecognized symbol: \033[34m%s\033[0m\n", yytext); exit(1); }
+.			{ fprintf(stderr, "\033[31mERROR\033[0m: Unrecognized symbol: \033[34m>%s<\033[0m\n", yytext); exit(1); }
 %%
 /*
 int yyerror(const char *msg) {

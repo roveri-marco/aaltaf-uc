@@ -73,6 +73,9 @@ std::string to_string (ltl_formula *root)
         case eUNTIL:
           res += " U ";
           break;
+        case eWUNTIL:
+          res += " W ";
+          break;
         case eRELEASE:
           res += " V ";
           break;

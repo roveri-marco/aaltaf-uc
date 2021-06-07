@@ -3,6 +3,10 @@
  * translate ltlf formulas to LTL formulas
 */
 
+namespace aalta {
+
+};
+
 #include "ltlf2ltl.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,7 +42,7 @@ ltl_formula* ltlf2ltl (ltl_formula *f)
       r = create_operation (eAND, t, r);
       res = create_operation (eNEXT, NULL, r);
       break;
-    
+
     case eFUTURE:
       r = ltlf2ltl (f->_right);
       t = create_var ("Tail");
@@ -55,15 +59,15 @@ ltl_formula* ltlf2ltl (ltl_formula *f)
       res = create_operation (eUNTIL, l, r);
       break;
     case eGLOBALLY:
-    
+
       r = ltlf2ltl (f->_right);
       t = create_var ("Tail");
       //t = create_operation (eNOT, NULL, t);
       r = create_operation (eOR, t, r);
       res = create_operation (eGLOBALLY, NULL, r);
-      break;     
+      break;
     case eRELEASE:
-    
+
       l = ltlf2ltl (f->_left);
       r = ltlf2ltl (f->_right);
       t = create_var ("Tail");
@@ -133,7 +137,7 @@ int main (int argc, char ** argv)
     {
       strcpy (in, argv[1]);
     }
-    
+
     ltl_formula *root = getAST (in);
     ltl_formula *f = ltlf2ltl (root);
     std::string res = to_string (f) +  "& ((! Tail) & ((! Tail) U G Tail))" + "\n";
@@ -142,10 +146,3 @@ int main (int argc, char ** argv)
     destroy_formula (f);
     destroy_formula (root);
 }
-
-
-
-
-
-
-
