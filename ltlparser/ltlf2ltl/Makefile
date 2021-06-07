@@ -22,9 +22,9 @@ run:	$(ALLCFILES)
 	$(CC) -g $(INCLUDE) $(ALLCFILES) -o ltlf2ltl
 
 run_debug:  $(ALLCFILES)
-	    $(CC) $(INCLUDE) $(CDEBUG) $(ALLCFILES) -o ltl2ltl
+	    $(CC) $(INCLUDE) $(CDEBUG) $(ALLCFILES) -o ltlf2ltl
 
 run_release:	run
 
 clean:
-	rm -f *.o *~ $(PARSERHFILES) $(PARSERCFILES) ltl2ltl
+	rm -f *.o *~ $(PARSERHFILES) $(PARSERCFILES) ltlf2ltl
