@@ -211,6 +211,7 @@ class aalta_formula
   bool trigger_free() const;
   aalta_formula *clone ()const;
   std::string to_string ()const;
+  std::string to_trpppstring () const;
   std::string to_RPN ()const;
 
   aalta_formula *unique ();

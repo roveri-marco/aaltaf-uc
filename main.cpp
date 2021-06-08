@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <chrono>
+#include <iostream>
+#include <fstream>
 
 #define MAXN 100000
 char in[MAXN];
@@ -17,7 +19,7 @@ using TVar=std::chrono::high_resolution_clock::time_point;
 using AaltaFormulaVec=std::vector<aalta_formula*>;
 
 void print_help(const char *name) {
-  cout << "usage: " << name << " [-e|-u|-v|-blsc|-t|-l|-h] [-f file | \"formula\"]" << endl;
+  cout << "usage: " << name << " [-e|-u|-v|-blsc|-t|-l|-h] [-p file] [-f file | \"formula\"]" << endl;
   cout << "\t -f\t:\t Reads formulas from file" << endl;
   cout << "\t -e\t:\t Prints example when result is SAT" << endl;
   cout << "\t -u\t:\t Computes the unsat core w.r.t. the "
@@ -27,6 +29,7 @@ void print_help(const char *name) {
   cout << "\t -blsc\t:\t Uses the BLSC checking method; Default is CDLSC" << endl;
   cout << "\t -t\t:\t Prints weak until formula and exit" << endl;
   cout << "\t -l\t:\t Prints weak until formula and continue" << endl;
+  cout << "\t -p\t:\t Prints the UC problem into TRP++ format" << endl;
   cout << "\t -h\t:\t Prints help information" << endl;
 }
 
@@ -43,6 +46,7 @@ ltlf_sat (int argc, char** argv)
   bool print_formula_and_continue = false;
   char * ffile = NULL;
   FILE * file = NULL;
+  char * ppfile = NULL;
   for (int i = 1; i < argc; i++) {
     if (strcmp (argv[i], "-v") == 0)
       verbose = true;
@@ -59,6 +63,17 @@ ltlf_sat (int argc, char** argv)
     else if (strcmp (argv[i], "-h") == 0) {
       print_help (argv[0]);
       exit (0);
+    }
+    else if (strcmp(argv[i], "-p") == 0) {
+      if (i + 1 < argc) {
+	ppfile = (char *)malloc(strlen(argv[i+1])+1);
+	sprintf(ppfile, "%s", argv[i+1]);
+	i++;
+      }
+      else {
+	print_help(argv[0]);
+	exit(1);
+      }
     }
     else if (strcmp(argv[i], "-f") == 0) {
       if (i + 1 < argc) {
@@ -118,10 +133,14 @@ ltlf_sat (int argc, char** argv)
       if (!print_formula_and_continue)
 	return;
     }
-
   }
   else {
+    t0 = chrono::high_resolution_clock::now();
     af = aalta_formula(file, true).unique();
+    t1 = chrono::high_resolution_clock::now();
+    cout << "-- Parsing of the file time: "
+	 << to_string(chrono::duration_cast<chrono::nanoseconds>(t1-t0).count()/1e9)
+	 << endl;
     if (file != stdin) fclose(file);
     if (print_weak_until_free || print_formula_and_continue) {
       cout << af->to_string() << endl;
@@ -146,6 +165,26 @@ ltlf_sat (int argc, char** argv)
   af = af->split_next();
   // Pushes Y over and/or operators
   af = af->split_yesterday();
+  if (ppfile != NULL) {
+    std::fstream out;
+    out.open(ppfile, std::fstream::out);
+    out << ";" << std::endl << "; run with" << std::endl
+	<< ";\t trp++uc -u -a proof -g ltl -f ltl " << ppfile << std::endl
+	<< ";" << std::endl;
+    for (auto i = names.begin(); i != names.end(); i++) {
+      out << (*i)->to_trpppstring() << " & ";
+    }
+    out << "(" << af->to_trpppstring() << ") & ";
+    out << "((not Tail) & ((not Tail) until (always Tail)))" << std::endl;
+    out.close();
+    std::cout << "-- Dumping problem into trp++-uc file \"" << ppfile << "\"" << std::endl;
+    t2 = chrono::high_resolution_clock::now();
+    cout << "-- Preprocessing and TRP++ dumping time: "
+	 << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)
+	 << endl;
+    exit(1);
+  }
+
   t2 = chrono::high_resolution_clock::now();
   cout << "-- Preprocessing time: "
        << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)

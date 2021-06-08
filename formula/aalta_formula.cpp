@@ -1689,6 +1689,45 @@ aalta_formula::to_string () const
 }
 
 
+std::string
+aalta_formula::to_trpppstring() const
+{
+  if (_left == NULL && _right == NULL)
+    return names[_op];
+  switch(_op) {
+  case True:
+    return "(true)";
+  case False:
+    return "(false)";
+  case Literal:
+    assert(false);
+  case And:
+    return "((" + _left->to_trpppstring() + ") & (" + _right->to_trpppstring() + "))";
+  case Or:
+    return "((" + _left->to_trpppstring() + ") | (" + _right->to_trpppstring() + "))";
+  case Not:
+    return "( not (" + _right->to_trpppstring() + "))";
+  case Until:
+    if (_left->oper() == True)
+      return "( sometime (" + _right->to_trpppstring() + "))";
+    else
+      return "((" + _left->to_trpppstring() + ") until (" + _right->to_trpppstring() + "))";
+  case Release:
+    if (_left->oper() == False)
+      return "( always (" + _right->to_trpppstring() + "))";
+    else
+      return "((" + _right->to_trpppstring() + ") unless (" + _left->to_trpppstring() + "))";
+  case Next:
+    return "( next (" + _right->to_trpppstring() + "))";
+  default:
+    assert(false);
+    return "";
+  }
+  assert(false);
+  return "";
+}
+
+
 aalta_formula* aalta_formula::add_tail() {
   aalta_formula *res, *l, *r;
   if (oper () == Next) {
@@ -1835,11 +1874,11 @@ aalta_formula::remove_wyesterday () {
 
 aalta_formula * aalta_formula::remove_past() {
   monitor.clear();
-  std::cout << this->to_string() << std::endl;
+  // std::cout << this->to_string() << std::endl;
 
   aalta_formula * res = remove_past_aux(this);
 
-  std::cout << res->to_string() << std::endl;
+  // std::cout << res->to_string() << std::endl;
 
   aalta_formula * trans = NULL;
   for (auto it = monitor.begin(); it != monitor.end(); it++) {
@@ -1854,7 +1893,7 @@ aalta_formula * aalta_formula::remove_past() {
     res = aalta_formula(And, res,
 			aalta_formula(Release, FALSE(), trans).unique()).unique();
   }
-  std::cout << res->to_string() << std::endl;
+  // std::cout << res->to_string() << std::endl;
   return res;
 }
 
