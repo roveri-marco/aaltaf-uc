@@ -1696,9 +1696,9 @@ aalta_formula::to_trpppstring() const
     return names[_op];
   switch(_op) {
   case True:
-    return "(true)";
+    return "(True)";
   case False:
-    return "(false)";
+    return "(False)";
   case Literal:
     assert(false);
   case And:
