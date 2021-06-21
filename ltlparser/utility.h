@@ -41,7 +41,7 @@ ltl_formula* clone (ltl_formula*);
  *get the alphabet of ltl formula
 */
 std::set<std::string> get_alphabet (ltl_formula*);
-
+void get_alphabet(std::set<std::string> & res, ltl_formula * root);
 /*
  *convert an integer to string
 */

@@ -107,6 +107,16 @@ std::string to_string (ltl_formula *root)
   return res;
 }
 
+void get_alphabet(std::set<std::string> & res, ltl_formula * root) {
+  if (root->_var != NULL) {
+    res.insert(std::string(root->_var));
+  } else {
+    if (root->_left != NULL)
+      get_alphabet(res, root->_left);
+    if (root->_right != NULL)
+      get_alphabet(res, root->_right);
+  }
+}
 
 std::set<std::string> get_alphabet (ltl_formula *root)
 {
