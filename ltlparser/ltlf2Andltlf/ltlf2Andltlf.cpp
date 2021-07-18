@@ -117,9 +117,9 @@ int main (int argc, char ** argv) {
   }
 
   for(auto i = conjuncts.begin(); i != conjuncts.end(); i++) {
-    if (tosmv) std::cout << "LTLSPEC NAME := ";
-    std::cout << "_r_" << std::setfill('0') << std::setw(5) << c++ << " : "
-	      << to_string(*i) << ";" << std::endl;
+    if (tosmv) std::cout << "LTLSPEC NAME ";
+    std::cout << "_r_" << std::setfill('0') << std::setw(5) << c++
+	      << " := " << to_string(*i) << ";" << std::endl;
   }
   destroy_formula(root);
 }
