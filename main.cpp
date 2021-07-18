@@ -182,7 +182,7 @@ ltlf_sat (int argc, char** argv)
     cout << "-- Preprocessing and TRP++ dumping time: "
 	 << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)
 	 << endl;
-    exit(1);
+    exit(0);
   }
 
   t2 = chrono::high_resolution_clock::now();
