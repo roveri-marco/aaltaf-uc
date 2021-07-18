@@ -111,7 +111,7 @@ int main (int argc, char ** argv) {
       *i = ltlfRemoveW(*i);
     }
     for(auto i = alphabet.begin(); i != alphabet.end(); i++) {
-      std::cout << " VAR" << *i << " boolean;" << std::endl;
+      std::cout << " VAR " << *i << " : boolean;" << std::endl;
     }
     std::cout << std::endl;
   }
