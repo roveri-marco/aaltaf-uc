@@ -5,7 +5,7 @@ PARSERCFILES =	../ltllexer.c ../ltlparser.c
 PARSERHFILES =	../ltllexer.h ../ltlparser.h
 ALLCFILES   =	$(PARSERCFILES) ../ltl_formula.c ../trans.c ../utility.cpp ltlf2Andltlf.cpp
 CC	    =   g++
-CDEBUG	    =	-g
+CDEBUG	    =	-g -DYYERROR_VERBOSE=1
 INCLUDE	    =   -I../ -I../..
 
 ALL : run
@@ -22,7 +22,7 @@ run:	$(ALLCFILES)
 	$(CC) -g $(INCLUDE) $(ALLCFILES) -o ltlf2Andltlf
 
 run_debug:  $(ALLCFILES)
-	    $(CC) $(INCLUDE) $(CDEBUG) $(ALLCFILES) -o ltlf2Andltl
+	    $(CC) $(INCLUDE) $(CDEBUG) $(ALLCFILES) -o ltlf2Andltlf
 
 run_release:	run
 

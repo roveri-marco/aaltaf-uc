@@ -17,7 +17,7 @@ namespace aalta {
 
 using namespace std;
 using namespace aalta;
-#define MAXN 1000000
+#define MAXN 100000000
 
 
 static std::vector<ltl_formula *> conjuncts;
@@ -99,6 +99,8 @@ int main (int argc, char ** argv) {
       exit(0);
     }
   }
+
+  // std::cout << in << std::endl;
 
   ltl_formula *root = getAST(in);
   ltlf2Andltlf(root);

@@ -5,13 +5,14 @@
  */
 
 #include "ltl_formula.h"
+#define YYERROR_VERBOSE 1
 #include "ltlparser.h"
 #include "ltllexer.h"
 
 int yyerror(ltl_formulas **formulas, yyscan_t scanner, const char *msg) {
   extern char * yytext;
   fprintf (stderr, "\033[31mERROR\033[0m: %s\n", msg);
-  exit(1);
+  // exit(1);
   return 0;
 }
 
@@ -33,7 +34,7 @@ typedef void* yyscan_t;
 %parse-param { yyscan_t scanner }
 
 %union {
-  char var_name[100]; // To avoid allocating a string and/or referring
+  char var_name[200]; // To avoid allocating a string and/or referring
 		      // to yytext
   ltl_formula *formula;
 }
