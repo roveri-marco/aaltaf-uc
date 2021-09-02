@@ -278,6 +278,9 @@ class aalta_formula
   // future
   aalta_formula * remove_past();
 
+  // Converts from ltlf2ltl
+  aalta_formula * ltlf2ltl_im();
+
 private:
   static aalta_formula *TAIL_;
 

@@ -297,6 +297,8 @@ aalta_formula::simplify_next (aalta_formula *af)
 {
   aalta_formula *s = af->simplify ();
   aalta_formula *simp;
+  // MR: This might be unsafe for LTLF since it removes X True that is
+  // ok on infinite traces, but might be unsafe for LTLf
   switch (s->_op)
     {
     case True: // X True = True
@@ -1727,7 +1729,7 @@ aalta_formula::to_trpppstring() const
   return "";
 }
 
-
+// MR: THIS MIGHT BE BUGGY!
 aalta_formula* aalta_formula::add_tail() {
   aalta_formula *res, *l, *r;
   if (oper () == Next) {
@@ -1735,6 +1737,7 @@ aalta_formula* aalta_formula::add_tail() {
     res = aalta_formula (Next, NULL, r).unique ();
     aalta_formula *not_tail = aalta_formula (Not, NULL, TAIL ()).unique ();
     res = aalta_formula (And, not_tail, res).unique ();
+    // builds !tail & X p instead of what I believe being more correct X (!tail & p)
   }
   else {
     if (_left != NULL)
@@ -4141,5 +4144,50 @@ aalta_formula::cosafety2smv ()
   return result;
 }
 
+
+aalta_formula * aalta_formula::ltlf2ltl_im() {
+  aalta_formula *l_n, *r_n, *neg_tail;
+
+  if (_left != NULL) {
+    l_n = _left->ltlf2ltl_im();
+  } else {
+    l_n = NULL;
+  }
+  if (_right != NULL) {
+    r_n = _right->ltlf2ltl_im();
+  } else {
+    r_n = NULL;
+  }
+
+  // It is a variable
+  if (l_n == NULL && r_n == NULL) return this->unique();
+  // It is not a variable
+  switch(oper()) {
+  case And:
+    return aalta_formula(And, l_n, r_n).unique();
+  case Or:
+    return aalta_formula(Or, l_n, r_n).unique();
+  case Not:
+    return aalta_formula(Not, NULL, r_n).unique();
+  case Next: // X
+    assert(l_n == NULL);
+    r_n = aalta_formula(And, TAIL(), r_n).unique();
+    return aalta_formula(Next, NULL, r_n).unique();
+  case Until: // U
+    neg_tail = aalta_formula(Not, NULL, TAIL()).unique();
+    r_n = aalta_formula(And, r_n, neg_tail).unique();
+    return aalta_formula(Until, l_n, r_n).unique();
+  case Release: // R﻿
+    neg_tail = aalta_formula(Not, NULL, TAIL()).unique();
+    l_n = aalta_formula(And, l_n, neg_tail).unique();
+    r_n = aalta_formula(Or, r_n, TAIL()).unique();
+    return aalta_formula(Until, l_n, r_n).unique();
+  default: //atom
+    assert(false);
+    break;
+  }
+  assert(false);
+  return NULL;
+}
 }
 //end of Jianwen Li

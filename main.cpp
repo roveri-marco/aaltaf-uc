@@ -156,10 +156,13 @@ ltlf_sat (int argc, char** argv)
   // tableau transition system (/\_i init_i G(/\_i trans_i)
   af = af->remove_past();
   // Add tail
-  af = af->add_tail();
+  if (ppfile == NULL)
+    af = af->add_tail();
   // Rewrites weak next with N f <-> Tail | X f
   af = af->remove_wnext();
   // Simplify the formula
+  // WARNING: MR: I need to reconsider the simplifications since they might be
+  // invalid for LTLf
   af = af->simplify();
   // Pushes X over and/or operators
   af = af->split_next();
@@ -174,6 +177,7 @@ ltlf_sat (int argc, char** argv)
     for (auto i = names.begin(); i != names.end(); i++) {
       out << (*i)->to_trpppstring() << " & ";
     }
+    af = af->ltlf2ltl_im();
     out << "(" << af->to_trpppstring() << ") & ";
     out << "((not Tail) & ((not Tail) until (always Tail)))" << std::endl;
     out.close();
