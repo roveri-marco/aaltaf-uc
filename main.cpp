@@ -198,7 +198,7 @@ ltlf_sat (int argc, char** argv)
       out << (*i)->to_trpppstring() << " & ";
     }
     if (!isLTL) af = af->ltlf2ltl_im();
-    out << "(" << af->to_trpppstring() << ") & ";
+    out << "(" << af->to_trpppstring() << ((!isLTL)?  ") & " : "");
     if (!isLTL) out << "((not Tail) & ((not Tail) until (always Tail)))" << std::endl;
     out.close();
     std::cout << "-- Dumping problem into trp++-uc file \"" << ppfile << "\"" << std::endl;
