@@ -150,6 +150,7 @@ ltlf_sat (int argc, char** argv)
     } while (c != EOF);
     fprintf(tmpf, " ;");
     fclose(tmpf);
+    std::remove(name1.c_str());
     if (file != stdin) fclose(file);
     file = fopen(name1.c_str(), "r");
     af = aalta_formula(file, true).unique();
