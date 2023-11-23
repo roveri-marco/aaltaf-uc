@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cassert>
 
 /**
  * 动态申请Expression类型
@@ -71,6 +72,17 @@ ltl_formulas * allocate_ltl_formulas(unsigned int init) {
     exit(1);
   }
   return res;
+}
+
+void free_ltl_formulas(ltl_formulas * self) {
+  assert(self != (ltl_formulas *)NULL);
+  for(int i = 0; i < self->size; i++) {
+    destroy_formula(self->formulas[i]);
+    destroy_formula(self->names[i]);
+  }
+  free(self->formulas);
+  free(self->names);
+  free(self);
 }
 
 void push_ltlformula(ltl_formulas * self,
