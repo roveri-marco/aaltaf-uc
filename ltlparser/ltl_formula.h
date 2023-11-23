@@ -98,6 +98,7 @@ extern "C"
   void destroy_node (ltl_formula *node);
 
   ltl_formulas * allocate_ltl_formulas(unsigned int init);
+  void free_ltl_formulas(ltl_formulas * self);
   void push_ltlformula(ltl_formulas * self,
 		       ltl_formula * name, ltl_formula * formula);
 #ifdef	__cplusplus

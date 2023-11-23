@@ -12,7 +12,6 @@ namespace aalta {
 #include <stdio.h>
 #include <set>
 using namespace std;
-using namespace aalta;
 #define MAXN 1000000
 
 

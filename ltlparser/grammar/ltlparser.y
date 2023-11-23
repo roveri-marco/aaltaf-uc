@@ -8,6 +8,7 @@
 #define YYERROR_VERBOSE 1
 #include "ltlparser.h"
 #include "ltllexer.h"
+#include <iostream>
 
 int yyerror(ltl_formulas **formulas, yyscan_t scanner, const char *msg) {
   extern char * yytext;
@@ -16,6 +17,7 @@ int yyerror(ltl_formulas **formulas, yyscan_t scanner, const char *msg) {
   return 0;
 }
 
+static int _counter = 0;
 %}
 
 %code requires {
@@ -67,16 +69,21 @@ typedef void* yyscan_t;
 %token TOKEN_SEMI
 
 %type <formula> expr
-%type <formula> conjunction
+%type <formula> conjunction aaltaf_conjunction new_conjunction
 
 %%
 
-input : conjunction { };
+input : aaltaf_conjunction { };
+
+aaltaf_conjunction : conjunction | new_conjunction {};
+
+new_conjunction : expr { push_ltlformula(*formulas, create_var((std::string("f")+std::to_string(_counter++)).c_str()), $1); $$ = $1; }
+                | new_conjunction expr { push_ltlformula(*formulas, create_var((std::string("f")+std::to_string(_counter++)).c_str()), $2); $$ = $2;}
 
 conjunction : TOKEN_VARIABLE TOKEN_EQBYDEF expr TOKEN_SEMI
               { push_ltlformula(*formulas, create_var($1), $3); $$ = $3; }
             | conjunction TOKEN_VARIABLE TOKEN_EQBYDEF expr TOKEN_SEMI
-	      { push_ltlformula(*formulas, create_var($2), $4); $$ = $4; }
+	             { push_ltlformula(*formulas, create_var($2), $4); $$ = $4; }
             ;
 
 expr

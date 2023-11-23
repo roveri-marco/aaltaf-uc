@@ -24,15 +24,15 @@ LPAREN		"("
 RPAREN		")"
 
 EQUIV		"<->"
-IMPLIES		"->"
+IMPLIES		"->"|"=>"
 OR			\|\|?
 AND			&&?
 RELEASE		R|V
-UNTIL		U
+UNTIL		U|"<U>"
 WEAK_UNTIL	W
-FUTURE		F|\<>
-GLOBALLY	G|\[\]
-NEXT		X
+FUTURE		F|\<>|"<F>"
+GLOBALLY	G|\[\]|"<G>"
+NEXT		X|"<X>"
 WEAK_NEXT	N
 TRIGGER		T
 SINCE		S
