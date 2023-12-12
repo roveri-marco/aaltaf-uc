@@ -6,9 +6,12 @@ PARSERHFILES =	../ltllexer.h ../ltlparser.h
 ALLCFILES   =	$(PARSERCFILES) ../ltl_formula.c ../trans.c ../utility.cpp ltlf2ltlf.cpp
 CC	    =   g++
 CDEBUG	    =	-g
-INCLUDE	    =   -I../
+INCLUDE	    =   -I ../
+
+.DEFAULT: run
 
 ltlf2ltlf:	$(PARSERCFILES)
+	$(CC) $(INCLUDE) $(ALLCFILES) -o ltlf2ltlf
 
 ltllexer.c:	../grammar/ltllexer.l
 		flex ../grammar/ltllexer.l
