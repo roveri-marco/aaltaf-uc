@@ -173,14 +173,26 @@ print_formula (ltl_formula *root)
         case eNEXT:
           printf ("X ");
           break;
+        case eYESTERDAY:
+          printf ("Y ");
+          break;
+        case eZYESTERDAY:
+          printf ("Z ");
+          break;
         case eWNEXT:
           printf ("N ");
           break;
         case eGLOBALLY:
-          printf ("[] ");
+          printf ("G ");
+          break;
+        case eHISTORICALLY:
+          printf ("H ");
           break;
         case eFUTURE:
-          printf ("<> ");
+          printf ("F ");
+          break;
+        case eONCE:
+          printf ("O ");
           break;
         case eUNTIL:
           printf (" U ");
@@ -190,6 +202,12 @@ print_formula (ltl_formula *root)
           break;
         case eRELEASE:
           printf (" R ");
+          break;
+        case eTRIGGER:
+          printf (" T ");
+          break;
+        case eSINCE:
+          printf (" S ");
           break;
         case eAND:
           printf (" & ");

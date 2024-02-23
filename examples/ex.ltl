@@ -1,0 +1,1 @@
+c && (X G ( c -> X q)) && (X F ( d -> X z)) && (X G ( a -> X b)) && (G (a -> X !b)) && (X F a) && (X (F a | F b)) && (wX a => FALSE)

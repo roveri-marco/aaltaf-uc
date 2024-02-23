@@ -3,14 +3,14 @@
 
 PARSERCFILES =	../ltllexer.c ../ltlparser.c
 PARSERHFILES =	../ltllexer.h ../ltlparser.h
-ALLCFILES   =	$(PARSERCFILES) ../ltl_formula.c ../trans.c ../utility.cpp ltlf2ltl.cpp
+ALLCFILES   =	$(PARSERCFILES) ../ltl_formula.c ../trans.c ../utility.cpp ltlf2Andltlf.cpp
 CC	    =   g++
-CDEBUG	    =	-g
+CDEBUG	    =	-g -DYYERROR_VERBOSE=1
 INCLUDE	    =   -I../ -I../..
 
 ALL : run
 
-ltlf2ltl:	$(PARSERCFILES)
+ltlf2Andltlf:	$(PARSERCFILES)
 
 ../ltllexer.c:	../grammar/ltllexer.l
 		flex ../grammar/ltllexer.l
@@ -19,12 +19,12 @@ ltlf2ltl:	$(PARSERCFILES)
 		bison ../grammar/ltlparser.y
 
 run:	$(ALLCFILES)
-	$(CC) -g $(INCLUDE) $(ALLCFILES) -o ltlf2ltl
+	$(CC) -g $(INCLUDE) $(ALLCFILES) -o ltlf2Andltlf
 
 run_debug:  $(ALLCFILES)
-	    $(CC) $(INCLUDE) $(CDEBUG) $(ALLCFILES) -o ltlf2ltl
+	    $(CC) $(INCLUDE) $(CDEBUG) $(ALLCFILES) -o ltlf2Andltlf
 
 run_release:	run
 
 clean:
-	rm -f *.o *~ $(PARSERHFILES) $(PARSERCFILES) ltlf2ltl
+	rm -f *.o *~ $(PARSERHFILES) $(PARSERCFILES) ltlf2Andltlf

@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <chrono>
+#include <iostream>
+#include <fstream>
 
 #define MAXN 100000
 char in[MAXN];
@@ -17,7 +19,7 @@ using TVar=std::chrono::high_resolution_clock::time_point;
 using AaltaFormulaVec=std::vector<aalta_formula*>;
 
 void print_help(const char *name) {
-  cout << "usage: " << name << " [-e|-u|-v|-blsc|-t|-l|-h] [-f file | \"formula\"]" << endl;
+  cout << "usage: " << name << " [-e|-u|-v|-blsc|-t|-l|-h] [-p file] [-f file | \"formula\"]" << endl;
   cout << "\t -f\t:\t Reads formulas from file" << endl;
   cout << "\t -e\t:\t Prints example when result is SAT" << endl;
   cout << "\t -u\t:\t Computes the unsat core w.r.t. the "
@@ -27,7 +29,9 @@ void print_help(const char *name) {
   cout << "\t -blsc\t:\t Uses the BLSC checking method; Default is CDLSC" << endl;
   cout << "\t -t\t:\t Prints weak until formula and exit" << endl;
   cout << "\t -l\t:\t Prints weak until formula and continue" << endl;
+  cout << "\t -p\t:\t Prints the UC problem into TRP++ format" << endl;
   cout << "\t -h\t:\t Prints help information" << endl;
+  cout << "\t -L\t:\t Interprets the input formula as LTL instead of LTLf" << endl;
 }
 
 void
@@ -35,6 +39,7 @@ ltlf_sat (int argc, char** argv)
 {
   TVar t0, t1, t2, t3, t4, t5, t6, t7;
   bool uc = false;
+  bool isLTL = false;
   bool verbose = false;
   bool evidence = false;
   int input_count = 0;
@@ -43,6 +48,7 @@ ltlf_sat (int argc, char** argv)
   bool print_formula_and_continue = false;
   char * ffile = NULL;
   FILE * file = NULL;
+  char * ppfile = NULL;
   for (int i = 1; i < argc; i++) {
     if (strcmp (argv[i], "-v") == 0)
       verbose = true;
@@ -56,27 +62,40 @@ ltlf_sat (int argc, char** argv)
       print_weak_until_free = true;
     else if (strcmp (argv[i], "-l") == 0)
       print_formula_and_continue = true;
+    else if (strcmp (argv[i], "-L") == 0)
+      isLTL = true;
     else if (strcmp (argv[i], "-h") == 0) {
       print_help (argv[0]);
       exit (0);
     }
-    else if (strcmp(argv[i], "-f") == 0) {
+    else if (strcmp(argv[i], "-p") == 0) {
       if (i + 1 < argc) {
-	ffile = (char *)malloc(strlen(argv[i+1])+1);
-	sprintf(ffile, "%s", argv[i+1]);
-	file = fopen(ffile, "r");
-	i++;
-	if (NULL == file) {
-	  printf("Unable to open file \"%s\"\n"
-		 "since either the file does not exist,\n"
-		 "or you do not have the rights to open it\n", ffile);
-	  free(ffile);
-	  exit(1);
-	}
+        ppfile = (char *)malloc(strlen(argv[i+1])+1);
+        sprintf(ppfile, "%s", argv[i+1]);
+        i++;
       }
       else {
-	print_help(argv[0]);
-	exit(1);
+        print_help(argv[0]);
+        exit(1);
+      }
+    }
+    else if (strcmp(argv[i], "-f") == 0) {
+      if (i + 1 < argc) {
+        ffile = (char *)malloc(strlen(argv[i+1])+1);
+        sprintf(ffile, "%s", argv[i+1]);
+        file = fopen(ffile, "r");
+        i++;
+        if (NULL == file) {
+          printf("Unable to open file \"%s\"\n"
+                 "since either the file does not exist,\n"
+                 "or you do not have the rights to open it\n", ffile);
+          free(ffile);
+          exit(1);
+        }
+      }
+      else {
+        print_help(argv[0]);
+        exit(1);
       }
     }
     else {
@@ -110,34 +129,87 @@ ltlf_sat (int argc, char** argv)
       // cout << af->to_string() << endl;
 
       for (; n != names.end(); ) {
-	auto el = *n; auto el1 = *f;
-	cout << "" << el->to_string() << " := "
-	     << el1->to_string() << ";" << endl;
-	n++; f++;
+        auto el = *n; auto el1 = *f;
+        cout << "" << el->to_string() << " := "
+             << el1->to_string() << ";" << endl;
+        n++; f++;
       }
       if (!print_formula_and_continue)
 	return;
     }
-
   }
   else {
-    af = aalta_formula(file, true).unique();
+    t0 = chrono::high_resolution_clock::now();
+    std::string name1 = std::tmpnam(nullptr);
+    FILE * tmpf = fopen(name1.c_str(), "w");
+    fprintf(tmpf, "FAKE_NAME___ := ");
+    char c = 0;
+    do {
+      c = fgetc(file);
+      if (c != EOF) fputc(c, tmpf);
+    } while (c != EOF);
+    fprintf(tmpf, " ;");
+    fclose(tmpf);
+    std::remove(name1.c_str());
     if (file != stdin) fclose(file);
+    file = fopen(name1.c_str(), "r");
+    af = aalta_formula(file, true).unique();
+
+    t1 = chrono::high_resolution_clock::now();
+    cout << "-- Parsing of the file time: "
+         << to_string(chrono::duration_cast<chrono::nanoseconds>(t1-t0).count()/1e9)
+         << endl;
+    if (file != stdin) fclose(file);
+    unlink(name1.c_str());
     if (print_weak_until_free || print_formula_and_continue) {
       cout << af->to_string() << endl;
       if (!print_formula_and_continue)
-	return;
+        return;
     }
   }
   // Converts formula in NNF
   af = af->nnf();
-  af = af->add_tail();
+  // Rewrites weak yesterday with Z f <-> ! Y !f
+  af = af->remove_wyesterday();
+  // We remove the past and add the respective tableau variables and
+  // tableau transition system (/\_i init_i G(/\_i trans_i)
+  af = af->remove_past();
+  // Add tail
+  if (false && ppfile == NULL && !isLTL)
+    af = af->add_tail();
   // Rewrites weak next with N f <-> Tail | X f
-  af = af->remove_wnext();
+  if (!isLTL) {
+    af = af->remove_wnext();
+  }
   // Simplify the formula
+  // WARNING: MR: I need to reconsider the simplifications since they might be
+  // invalid for LTLf
   af = af->simplify();
   // Pushes X over and/or operators
   af = af->split_next();
+  // Pushes Y over and/or operators
+  af = af->split_yesterday();
+  if (ppfile != NULL) {
+    std::fstream out;
+    out.open(ppfile, std::fstream::out);
+    out << ";" << std::endl << "; run with" << std::endl
+        << ";\t trp++uc -u -a proof -g ltl -f ltl " << ppfile << std::endl
+        << ";" << std::endl;
+    for (auto i = names.begin(); i != names.end(); i++) {
+      out << (*i)->to_trpppstring() << " & ";
+    }
+    if (!isLTL) af = af->ltlf2ltl_im();
+    out << "(" << af->to_trpppstring() << ((!isLTL)?  ") & " : "");
+    if (!isLTL) out << "((not Tail) & ((not Tail) until (always Tail)))" << std::endl;
+    out.close();
+    std::cout << "-- Dumping problem into trp++-uc file \"" << ppfile << "\"" << std::endl;
+    t2 = chrono::high_resolution_clock::now();
+    cout << "-- Preprocessing and TRP++ dumping time: "
+         << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)
+         << endl;
+    exit(0);
+  }
+
   t2 = chrono::high_resolution_clock::now();
   cout << "-- Preprocessing time: "
        << to_string(chrono::duration_cast<chrono::nanoseconds>(t2-t1).count()/1e9)
@@ -181,20 +253,20 @@ ltlf_sat (int argc, char** argv)
     CARChecker checker (af, verbose, evidence);
     t3 = chrono::high_resolution_clock::now();
     cout << "-- Checker creation time: "
-	 << to_string(chrono::duration_cast<chrono::nanoseconds>(t3-t2).count()/1e9)
-	 << endl;
+         << to_string(chrono::duration_cast<chrono::nanoseconds>(t3-t2).count()/1e9)
+         << endl;
     if (uc) {
       checker.add_assumptions(names);
       t4 = chrono::high_resolution_clock::now();
       cout << "-- Checker add assumption time: "
-	   << to_string(chrono::duration_cast<chrono::nanoseconds>(t4-t3).count()/1e9)
-	   << endl;
+           << to_string(chrono::duration_cast<chrono::nanoseconds>(t4-t3).count()/1e9)
+           << endl;
     }
     bool res = checker.check ();
     t5 = chrono::high_resolution_clock::now();
     cout << "-- Checker check time: "
-	   << to_string(chrono::duration_cast<chrono::nanoseconds>(t5-t4).count()/1e9)
-	   << endl;
+         << to_string(chrono::duration_cast<chrono::nanoseconds>(t5-t4).count()/1e9)
+         << endl;
     if (!uc) {
       cout <<  (res ? "sat" : "unsat") << endl;
     } else {
@@ -206,7 +278,7 @@ ltlf_sat (int argc, char** argv)
       cout << "-- unsat core:";
       checker.print_uc(); cout << endl;
       cout << "-- unsat core size: "
-	   << checker.get_uc_size() << endl;
+           << checker.get_uc_size() << endl;
     }
   }
   aalta_formula::destroy();

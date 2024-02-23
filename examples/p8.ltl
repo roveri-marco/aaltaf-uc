@@ -1,0 +1,6 @@
+P0 := c;
+P3 := X G ( c -> H q);
+P9 := X F ( d -> O z);
+P1 := X G ( a -> X b)  && G (a -> X !b);
+P2 := X F a;
+P4 := X (a S b);

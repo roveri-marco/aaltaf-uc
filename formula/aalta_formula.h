@@ -141,6 +141,9 @@ class aalta_formula
   static tag_set all_tags; // 所有tag的集合
   static aalta_formula *_TRUE;
   static aalta_formula *_FALSE;
+  // To store the monitor used for replacing the past operators
+  static std::vector<std::pair<aalta_formula *,aalta_formula *>> monitor;
+
   //////////////////////////////////////////////////
 
  public:
@@ -158,6 +161,10 @@ class aalta_formula
     WNext, //weak Next, for LTLf
     Until,
     Release,
+    Yesterday,
+    ZYesterday, // Weak Yesterday for initial state
+    Since,
+    Trigger,
     Undefined
   };
  private:
@@ -192,13 +199,19 @@ class aalta_formula
   int get_length ();
   aalta_formula *af_now (int op);
   aalta_formula *af_next (int op)const;
-  bool is_future ()const;
-  bool is_globally ()const;
-  bool is_until ()const;
-  bool is_next ()const;
-  bool release_free ()const;
+  bool is_future() const;
+  bool is_globally() const;
+  bool is_once() const;
+  bool is_historically() const;
+  bool is_until() const;
+  bool is_since() const;
+  bool is_next() const;
+  bool is_yesterday() const;
+  bool release_free() const;
+  bool trigger_free() const;
   aalta_formula *clone ()const;
   std::string to_string ()const;
+  std::string to_trpppstring () const;
   std::string to_RPN ()const;
 
   aalta_formula *unique ();
@@ -234,7 +247,7 @@ class aalta_formula
   static aalta_formula *simplify_or (aalta_formula *l, aalta_formula *r);
   static aalta_formula *simplify_until (aalta_formula *l, aalta_formula *r);
   static aalta_formula *simplify_release (aalta_formula *l, aalta_formula *r);
-
+  static aalta_formula *remove_past_aux (aalta_formula * l);
  public:
   static aalta_formula *simplify_and (aalta_formula *l, aalta_formula *r);
   static aalta_formula *simplify_and_weak (aalta_formula *l, aalta_formula *r);
@@ -251,10 +264,24 @@ class aalta_formula
   //This function split Next subformula by /\ or \/. i.e. X(a/\ b) -> X a /\ X b
   //It is a necessary preprocessing for SAT-based checking
   aalta_formula* split_next ();
+  //This function split Yesterday subformula by /\ or \/. i.e. Y(a/\ b) -> Y a /\ Y b
+  //It is a necessary preprocessing for SAT-based checking
+  aalta_formula* split_yesterday();
+
   //replace weak next with next by N f <-> Tail | X f
   aalta_formula* remove_wnext ();
+  //replace weak yesterday with next by Z f <-> ! X !f
+  aalta_formula* remove_wyesterday ();
   static aalta_formula* TAIL ();
- private:
+
+  // Convert formula with past operator in equisat formula over pure
+  // future
+  aalta_formula * remove_past();
+
+  // Converts from ltlf2ltl
+  aalta_formula * ltlf2ltl_im();
+
+private:
   static aalta_formula *TAIL_;
 
 

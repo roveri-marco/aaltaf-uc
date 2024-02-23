@@ -8,12 +8,14 @@ CC	    =   g++
 CDEBUG	    =	-g
 INCLUDE	    =   -I../
 
+ALL: run
+
 ltl2smvspec:	$(PARSERCFILES)
 
-ltllexer.c:	../grammar/ltllexer.l
+../ltllexer.c:	../grammar/ltllexer.l
 		flex ../grammar/ltllexer.l
 
-ltlparser.c:	../grammar/ltlparser.y
+../ltlparser.c:	../grammar/ltlparser.y
 		bison ../grammar/ltlparser.y
 
 run:	$(ALLCFILES)
@@ -26,4 +28,3 @@ run_release:	run
 
 clean:
 	rm -f *.o *~ $(PARSERHFILES) $(PARSERCFILES) ltl2smvspec
-
