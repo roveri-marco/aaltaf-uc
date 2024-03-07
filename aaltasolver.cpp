@@ -73,6 +73,12 @@ namespace aalta
     return res;
   }
 
+  // return the minimal unsatisfiable subset from SAT solver when it provides SAT
+  std::vector<int> AaltaSolver::get_mus ()
+  {
+
+  }
+
   //return the UC from SAT solver when it provides UNSAT
   std::vector<int> AaltaSolver::get_uc ()
   {
