@@ -76,29 +76,35 @@ namespace aalta
 
   // return the minimal unsatisfiable subset from SAT solver when it provides SAT
   std::vector<int> AaltaSolver::get_mus() {
-    Minisat::vec<Minisat::Lit> _ass;
-    ext_assumption_.copyTo(_ass);
+    Minisat::vec<Minisat::Lit> original_assumptions;
+    ext_assumption_.copyTo(original_assumptions);
     for (int i = 0; i < assumption_.size(); i++) {
-      _ass.push(assumption_[i]);
+        original_assumptions.push(assumption_[i]);
     }
     
-    if (solveLimited(_ass) != l_False) {
+    if (solveLimited(original_assumptions) != l_False) {
       return std::vector<int>();
     }
     
     std::set<int> mus_set;
-    for (int i = 0; i < _ass.size(); ) {
-      Minisat::Lit removed = _ass[i];
-      _ass[i] = _ass.last();
-      _ass.pop(); 
-      
+    for (int i = 0; i < original_assumptions.size(); i++) {
+      Minisat::vec<Minisat::Lit> _ass;
+      for (int j = 0; j < original_assumptions.size(); j++) {
+          if (i != j) { 
+              _ass.push(original_assumptions[j]);
+          }
+      }
+
       if (solveLimited(_ass) == l_True) {
         // if removing this assumption makes it satisfiable -> it is part of the MUS
-         mus_set.insert(lit_id(removed));
-        _ass.push(removed);
-        i++;
+        mus_set.insert(lit_id(original_assumptions[i]));
       } else {
         // not satisfiable -> not part of the MUS
+        // TODO: manage the i and restore _ass
+        // _ass.insert(_ass.size() - 1, removed);
+        // _ass.shrink(_ass.size() - 1); 
+        // ++i;
+        // problem: we do not have insert -> use a copy?
         continue;
       }
     }
