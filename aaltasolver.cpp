@@ -8,6 +8,7 @@
 #include "aaltasolver.h"
 #include <iostream>
 #include <vector>
+#include <set>
 using namespace std;
 using namespace Minisat;
 
@@ -74,9 +75,36 @@ namespace aalta
   }
 
   // return the minimal unsatisfiable subset from SAT solver when it provides SAT
-  std::vector<int> AaltaSolver::get_mus ()
-  {
-
+  std::vector<int> AaltaSolver::get_mus() {
+    Minisat::vec<Minisat::Lit> _ass;
+    ext_assumption_.copyTo(_ass);
+    for (int i = 0; i < assumption_.size(); i++) {
+      _ass.push(assumption_[i]);
+    }
+    
+    if (solveLimited(_ass) != l_False) {
+      return std::vector<int>();
+    }
+    
+    std::vector<int> mus;
+    std::set<int> mus_set;
+    for (int i = 0; i < _ass.size(); ) {
+      Minisat::Lit removed = _ass[i];
+      _ass[i] = _ass.last();
+      _ass.pop(); 
+      
+      if (solveLimited(_ass) == l_True) {
+        // if removing this assumption makes it satisfiable -> it is part of the MUS
+        mus.push_back(lit_id(removed)); 
+        _ass.push(removed);
+        i++;
+      } else {
+        // not satisfiable -> not part of the MUS
+        continue;
+      }
+    }
+    
+    return mus;
   }
 
   //return the UC from SAT solver when it provides UNSAT

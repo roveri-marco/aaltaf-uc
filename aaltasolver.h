@@ -10,6 +10,7 @@
 
 #include "minisat/core/Solver.h"
 #include <vector>
+#include <set>
 
 namespace aalta
 {
