@@ -86,7 +86,6 @@ namespace aalta
       return std::vector<int>();
     }
     
-    std::vector<int> mus;
     std::set<int> mus_set;
     for (int i = 0; i < _ass.size(); ) {
       Minisat::Lit removed = _ass[i];
@@ -95,7 +94,7 @@ namespace aalta
       
       if (solveLimited(_ass) == l_True) {
         // if removing this assumption makes it satisfiable -> it is part of the MUS
-        mus.push_back(lit_id(removed)); 
+         mus_set.insert(lit_id(removed));
         _ass.push(removed);
         i++;
       } else {
@@ -104,7 +103,7 @@ namespace aalta
       }
     }
     
-    return mus;
+    return std::vector<int>(mus_set.begin(), mus_set.end());
   }
 
   //return the UC from SAT solver when it provides UNSAT
