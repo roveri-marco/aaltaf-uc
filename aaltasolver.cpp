@@ -83,6 +83,7 @@ namespace aalta
     }
     
     if (solveLimited(original_assumptions) != l_False) {
+      if(verbose_) cout << "Error: get_mus called on a satisfiable formula" << endl;
       return std::vector<int>();
     }
     
@@ -98,13 +99,15 @@ namespace aalta
       if (solveLimited(_ass) == l_True) {
         // if removing this assumption makes it satisfiable -> it is part of the MUS
         mus_set.insert(lit_id(original_assumptions[i]));
+        if(verbose_) cout << lit_id(original_assumptions[i]) << " it is part of the MUS" << endl;
       } else {
+        if(verbose_) cout << lit_id(original_assumptions[i]) << " it is not part of the MUS" << endl;
         // not satisfiable -> not part of the MUS
         // TODO: manage the i and restore _ass
         // _ass.insert(_ass.size() - 1, removed);
         // _ass.shrink(_ass.size() - 1); 
         // ++i;
-        // problem: we do not have insert -> use a copy?
+        // problem: we do not have insert -> use a copy? -> yes
         continue;
       }
     }
