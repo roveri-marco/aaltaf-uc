@@ -1,0 +1,6 @@
+P5 := F (q -> F a);
+P0 := G (c);
+P3 := G ( c -> X a);
+P9 := F ( d -> X z);
+P1 := G ( a -> X b)  && G (a -> X !b);
+P2 := F a;
