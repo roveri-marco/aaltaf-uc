@@ -6,3 +6,4 @@ ltlparser/ltlparser.*
 ltlparser/ltl2smv/ltl2smvspec
 ltlparser/ltlf2smv/ltlf2smv
 *.o
+.vscode/settings.json

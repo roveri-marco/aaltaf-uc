@@ -44,6 +44,8 @@ class LTLfChecker
   void print_evidence ();
   void print_uc();
   unsigned int get_uc_size();
+  void print_mus();
+  unsigned int get_mus_size();
 
  protected:
   //flags
@@ -58,6 +60,7 @@ class LTLfChecker
   std::vector<aalta_formula*> visited_;
   Evidence* evidence_;
   unsigned int uc_size_ = 0;
+  unsigned int mus_size_ = 0;
 
 
   //////////functions

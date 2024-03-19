@@ -10,6 +10,7 @@
 
 #include "minisat/core/Solver.h"
 #include <vector>
+#include <set>
 
 namespace aalta
 {
@@ -27,6 +28,7 @@ namespace aalta
     bool solve_assumption ();
     std::vector<int> get_model ();    //get the model from SAT solver
     std::vector<int> get_uc ();       //get UC from SAT solver
+    std::vector<int> get_mus ();      //get MUS (minimal unsatisfiable subset) from SAT solver
 
     void add_clause (int);
     void add_clause (int, int);

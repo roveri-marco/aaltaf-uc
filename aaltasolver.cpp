@@ -8,6 +8,7 @@
 #include "aaltasolver.h"
 #include <iostream>
 #include <vector>
+#include <set>
 using namespace std;
 using namespace Minisat;
 
@@ -73,19 +74,65 @@ namespace aalta
     return res;
   }
 
+  // return the minimal unsatisfiable subset from SAT solver when it provides SAT
+  std::vector<int> AaltaSolver::get_mus() {
+    // 1. assumption_ sempre dentro modulo rimozione di eventuali memberi che sono in ext_assumption_
+    // assumption_ \setminus ext_assumption_ sempre dentro
+    // play solo con ext_assumption_
+    // 2. eventuale ottimizzazione solo con quelle ext_assumption_ che sono in get_mus()
+    //
+    // X. Portare loop a top level operando solo sulle ext_assumption_ indipendentemente dal core
+    Minisat::vec<Minisat::Lit> original_assumptions;
+    ext_assumption_.copyTo(original_assumptions);
+    for (int i = 0; i < assumption_.size(); i++) {
+        original_assumptions.push(assumption_[i]);
+    }
+
+    if (solveLimited(original_assumptions) != l_False) {
+      if(verbose_) cout << "Error: get_mus called on a satisfiable formula" << endl;
+      return std::vector<int>();
+    }
+
+    std::set<int> mus_set;
+    for (int i = 0; i < original_assumptions.size(); i++) {
+      Minisat::vec<Minisat::Lit> _ass;
+      for (int j = 0; j < original_assumptions.size(); j++) {
+          if (i != j) {
+              _ass.push(original_assumptions[j]);
+          }
+      }
+
+      if (solveLimited(_ass) == l_True) {
+        // if removing this assumption makes it satisfiable -> it is part of the MUS
+        mus_set.insert(lit_id(original_assumptions[i]));
+        if(verbose_) cout << lit_id(original_assumptions[i]) << " it is part of the MUS" << endl;
+      } else {
+        if(verbose_) cout << lit_id(original_assumptions[i]) << " it is not part of the MUS" << endl;
+        // not satisfiable -> not part of the MUS
+        // TODO: manage the i and restore _ass
+        // _ass.insert(_ass.size() - 1, removed);
+        // _ass.shrink(_ass.size() - 1);
+        // ++i;
+        // problem: we do not have insert -> use a copy? -> yes
+        continue;
+      }
+    }
+
+    return std::vector<int>(mus_set.begin(), mus_set.end());
+  }
+
   //return the UC from SAT solver when it provides UNSAT
   std::vector<int> AaltaSolver::get_uc ()
   {
     std::vector<int> reason;
     if (verbose_)
       cout << "get uc: \n";
-    for (int k = 0; k < conflict.size(); k++)
-      {
-	Lit l = conflict[k];
-	reason.push_back (-lit_id (l));
-	if (verbose_)
-	  cout << -lit_id (l) << ", ";
-      }
+    for (int k = 0; k < conflict.size(); k++) {
+      Lit l = conflict[k];
+      reason.push_back (-lit_id (l));
+      if (verbose_)
+        cout << -lit_id (l) << ", ";
+    }
     if (verbose_)
       cout << endl;
     return reason;
