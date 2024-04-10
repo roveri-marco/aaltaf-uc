@@ -29,12 +29,19 @@ namespace aalta
     std::vector<int> get_model ();    //get the model from SAT solver
     std::vector<int> get_uc ();       //get UC from SAT solver
     std::vector<int> get_mus ();      //get MUS (minimal unsatisfiable subset) from SAT solver
+    std::vector<std::vector<int>> enumerate_all_mus();
+    void block_mus(const std::vector<int>& mus);
+
 
     void add_clause (int);
     void add_clause (int, int);
     void add_clause (int, int, int);
     void add_clause (int, int, int, int);
     void add_clause (std::vector<int>&);
+
+    bool contains(const std::vector<std::vector<int>>& all_mus, const std::vector<int>& mus);
+bool is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2);
+
 
     Minisat::Lit SAT_lit (int id); //create the Lit used in SAT solver for the id.
     int lit_id (Minisat::Lit);  //return the id of SAT lit

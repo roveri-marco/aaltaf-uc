@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <unordered_set>
 using namespace std;
 using namespace Minisat;
 
@@ -75,50 +76,45 @@ namespace aalta
   }
 
   // return the minimal unsatisfiable subset from SAT solver when it provides SAT
-  std::vector<int> AaltaSolver::get_mus() {
-    // 1. assumption_ sempre dentro modulo rimozione di eventuali memberi che sono in ext_assumption_
-    // assumption_ \setminus ext_assumption_ sempre dentro
-    // play solo con ext_assumption_
-    // 2. eventuale ottimizzazione solo con quelle ext_assumption_ che sono in get_mus()
-    //
-    // X. Portare loop a top level operando solo sulle ext_assumption_ indipendentemente dal core
-    Minisat::vec<Minisat::Lit> original_assumptions;
-    ext_assumption_.copyTo(original_assumptions);
-    for (int i = 0; i < assumption_.size(); i++) {
-        original_assumptions.push(assumption_[i]);
-    }
+  // 1. assumption_ sempre dentro modulo rimozione di eventuali memberi che sono in ext_assumption_
+  // assumption_ \setminus ext_assumption_ sempre dentro
+  // play solo con ext_assumption_
+  // 2. eventuale ottimizzazione solo con quelle ext_assumption_ che sono in get_mus()
+  //
+  // X. Portare loop a top level operando solo sulle ext_assumption_ indipendentemente dal core
+  std::vector<int> aalta::AaltaSolver::get_mus() {
+    if (!solve_assumption()) {
+      std::vector<int> mus; 
+      
+      std::set<int> all_ext_assumptions;
+      for (int i = 0; i < ext_assumption_.size(); i++) {
+        all_ext_assumptions.insert(lit_id(ext_assumption_[i]));
+      }
 
-    if (solveLimited(original_assumptions) != l_False) {
-      if(verbose_) cout << "Error: get_mus called on a satisfiable formula" << endl;
-      return std::vector<int>();
-    }
-
-    std::set<int> mus_set;
-    for (int i = 0; i < original_assumptions.size(); i++) {
-      Minisat::vec<Minisat::Lit> _ass;
-      for (int j = 0; j < original_assumptions.size(); j++) {
-          if (i != j) {
-              _ass.push(original_assumptions[j]);
+      std::vector<int> uc = get_uc();
+      for (int lit : uc) {
+        Minisat::vec<Minisat::Lit> test_assumptions;
+          for (int j = 0; j < ext_assumption_.size(); j++) {
+            if (lit_id(ext_assumption_[j]) != lit) {
+              test_assumptions.push(ext_assumption_[j]);
+            }
           }
-      }
 
-      if (solveLimited(_ass) == l_True) {
-        // if removing this assumption makes it satisfiable -> it is part of the MUS
-        mus_set.insert(lit_id(original_assumptions[i]));
-        if(verbose_) cout << lit_id(original_assumptions[i]) << " it is part of the MUS" << endl;
-      } else {
-        if(verbose_) cout << lit_id(original_assumptions[i]) << " it is not part of the MUS" << endl;
-        // not satisfiable -> not part of the MUS
-        // TODO: manage the i and restore _ass
-        // _ass.insert(_ass.size() - 1, removed);
-        // _ass.shrink(_ass.size() - 1);
-        // ++i;
-        // problem: we do not have insert -> use a copy? -> yes
-        continue;
+        for (int i = 0; i < assumption_.size(); i++) {
+          if (all_ext_assumptions.find(lit_id(assumption_[i])) == all_ext_assumptions.end()) {
+            test_assumptions.push(assumption_[i]);
+          }
+        }
+
+        if (solveLimited(test_assumptions) == l_True) {
+          mus.push_back(lit);
+        }
       }
+      return mus; 
+    } else {
+        if(verbose_) std::cout << "Initial formula is satisfiable, no MUS exists.\n";
+        return {};
     }
-
-    return std::vector<int>(mus_set.begin(), mus_set.end());
   }
 
   //return the UC from SAT solver when it provides UNSAT
@@ -159,6 +155,68 @@ namespace aalta
       cout << "After adding, size of clauses is " << clauses.size () << endl;
     */
   }
+
+bool AaltaSolver::contains(const std::vector<std::vector<int>>& all_mus, const std::vector<int>& mus) {
+    for (const auto& existing_mus : all_mus) {
+        if (is_equal_set(existing_mus, mus)) {
+            // cout << "Mus already exists" << endl;
+            return true;
+        }
+    }
+    // cout << "Mus does not exist" << endl;
+    return false;
+}
+
+bool AaltaSolver::is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2) {
+    if (set1.size() != set2.size()) return false;
+    std::unordered_set<int> s1(set1.begin(), set1.end());
+    std::unordered_set<int> s2(set2.begin(), set2.end());
+    return s1 == s2;
+}
+
+void AaltaSolver::block_mus(const std::vector<int>& mus) {
+    vec<Lit> blocking_clause;
+
+    // cout << "Blocking MUS: ";
+
+    for (int lit : mus) {
+        // cout << lit << " ";
+        Lit negated_lit = SAT_lit(-lit); 
+        
+        blocking_clause.push(negated_lit);
+    }
+    // cout << endl;
+
+    addClause(blocking_clause);
+}
+
+
+std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
+    std::vector<std::vector<int>> all_mus;
+
+    while (true) {
+        if (!solve_assumption()) {
+            auto mus = get_mus();
+            // cout << "Found MUS: ";
+            //   for (int lit : mus) {
+            //     cout << lit << " ";
+            //   }
+            // cout << endl;
+            if (mus.empty()) {
+                break;
+            }
+            if (!contains(all_mus, mus)) {
+                all_mus.push_back(mus);
+                block_mus(mus);
+                // cout << "Blocking MUS" << endl;
+        } else {
+            break;
+        }
+    }
+    return all_mus;
+  }
+}
+
 
   void AaltaSolver::add_clause (int id)
   {

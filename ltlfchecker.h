@@ -45,7 +45,9 @@ class LTLfChecker
   void print_uc();
   unsigned int get_uc_size();
   void print_mus();
+  void print_all_mus();
   unsigned int get_mus_size();
+
 
  protected:
   //flags
@@ -80,7 +82,6 @@ class LTLfChecker
   void print_formulas_id (aalta_formula *);
 
   inline bool detect_unsat () {return solver_->unsat_forever ();}
-
 };
 
 }

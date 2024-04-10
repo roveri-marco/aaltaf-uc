@@ -242,24 +242,41 @@ namespace aalta
     return uc_size_;
   }
 
-    void LTLfChecker::print_mus() {
+  void LTLfChecker::print_mus() {
     std::vector<int> u = solver_->get_mus();
     for(auto it = u.begin(); it != u.end(); it++) {
       int id = abs(*it);
       aalta_formula * f = solver_->get_ass_formula(id);
       if (f != NULL) {
-	cout << " ";
-	if (*it < 0) cout << "!";
-	cout << f->to_string();
-	mus_size_++;
-      }
-    }
-  }
+        cout << " ";
+        if (*it < 0) cout << "!";
+        cout << f->to_string();
+        mus_size_++;
+            }
+          }
+        }
   unsigned int LTLfChecker::get_mus_size() {
     return mus_size_;
   }
 
+  void LTLfChecker::print_all_mus() {
+    std::vector<std::vector<int>> all_mus = solver_->enumerate_all_mus();
+    for(const auto& mus : all_mus) {
+        int len = 0;
+        for(auto it = mus.begin(); it != mus.end(); it++) {
+        int id = abs(*it);
+        aalta_formula * f = solver_->get_ass_formula(id);
+        if (f != NULL) {
+          cout << " ";
+          if (*it < 0) cout << "!";
+            cout << f->to_string();
+            len++;
+            }
+          }
 
+          cout << "\nMus size: " << len << '\n';
+        }
+    }
 
   void LTLfChecker::print_formulas_id (aalta_formula* f)
   {
