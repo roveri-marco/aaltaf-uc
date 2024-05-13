@@ -190,31 +190,43 @@ void AaltaSolver::block_mus(const std::vector<int>& mus) {
     addClause(blocking_clause);
 }
 
-
 std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
     std::vector<std::vector<int>> all_mus;
+    auto first_mus = get_mus(); 
+    if (!first_mus.empty()) {
+        all_mus.push_back(first_mus);
+        
+        for (int i = 0; i < first_mus.size(); i++) {
+            int lit = first_mus[i];
 
-    while (true) {
-        if (!solve_assumption()) {
-            auto mus = get_mus();
-            // cout << "Found MUS: ";
-            //   for (int lit : mus) {
-            //     cout << lit << " ";
-            //   }
-            // cout << endl;
-            if (mus.empty()) {
-                break;
+            // exclude the current literal from the assumptions
+            Minisat::vec<Minisat::Lit> new_assumptions;
+            for (int j = 0; j < first_mus.size(); j++) {
+                if (i != j) {
+                    new_assumptions.push(SAT_lit(first_mus[j]));
+                }
             }
-            if (!contains(all_mus, mus)) {
-                all_mus.push_back(mus);
-                block_mus(mus);
-                // cout << "Blocking MUS" << endl;
-        } else {
-            break;
+            
+            // clear and copy the new assumptions
+            assumption_.clear();
+            for (int j = 0; j < new_assumptions.size(); j++) {
+                assumption_.push(new_assumptions[j]);
+            }
+
+            // find a new mus
+            auto new_mus = get_mus();
+            if (!new_mus.empty() && !contains(all_mus, new_mus)) {
+                all_mus.push_back(new_mus);
+            }
+
+            // restore
+            assumption_.clear();
+            for (int lit : first_mus) {
+                assumption_.push(SAT_lit(lit));
+            }
         }
     }
     return all_mus;
-  }
 }
 
 

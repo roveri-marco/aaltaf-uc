@@ -219,7 +219,7 @@ ltlf_sat (int argc, char** argv)
        checker.print_mus(); cout << endl;
        cout << "-- minimal unsatisfiable subset size: "
     << checker.get_mus_size() << endl;
-       cout << "-- enumeration of mus: ";
+       cout << "-- enumeration of mus: " << endl;
        checker.print_all_mus();
      }
     }

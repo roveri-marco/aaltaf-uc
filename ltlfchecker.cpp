@@ -267,10 +267,10 @@ namespace aalta
         int id = abs(*it);
         aalta_formula * f = solver_->get_ass_formula(id);
         if (f != NULL) {
-          cout << " ";
           if (*it < 0) cout << "!";
             cout << f->to_string();
             len++;
+            cout << " ";
             }
           }
 
