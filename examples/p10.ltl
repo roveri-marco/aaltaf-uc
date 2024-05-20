@@ -1,6 +1,10 @@
-P5 := F (q -> F a);
-P0 := G (c);
-P3 := G ( c -> X a);
-P9 := F ( d -> X z);
-P1 := G ( a -> X b)  && G (a -> X !b);
-P2 := F a;
+P0 := c;
+P3 := X G ( c -> X q);
+P9 := X F ( d -> X z);
+P1 := X G ( a -> X b)  && G (a -> X !b);
+P2 := X F a;
+P4 := X (F a | F b);
+P11 := X G ( a -> X b)  && G (a -> X !b);
+P21 := X F a;
+P12 := X G ( c -> X b)  && G (c -> X !b);
+P22 := X F c;
