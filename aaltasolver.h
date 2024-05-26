@@ -28,7 +28,7 @@ namespace aalta
     bool solve_assumption ();
     std::vector<int> get_model ();    //get the model from SAT solver
     std::vector<int> get_uc ();       //get UC from SAT solver
-    std::vector<int> get_mus ();      //get MUS (minimal unsatisfiable subset) from SAT solver
+    std::vector<int> get_mus(const Minisat::vec<Minisat::Lit>& custom_ext_assumption = Minisat::vec<Minisat::Lit>());     //get MUS (minimal unsatisfiable subset) from SAT solver
     std::vector<std::vector<int>> enumerate_all_mus();
     void block_mus(const std::vector<int>& mus);
 

@@ -25,6 +25,8 @@ void print_help(const char *name) {
        << "\n\t   \t \t\t If not specified, only firt formula is considered." << endl;
   cout << "\t -mus\t:\t Computes the minimal unsatisfiable subset w.r.t. the "
        << "conjunction of the input formulas." << endl;
+  cout << "\t -emus\t:\t Enumerates all minimal unsatisfiable subsets w.r.t. the "
+       << "conjunction of the input formulas." << endl;
   cout << "\t -v\t:\t Print verbose details" << endl;
   cout << "\t -blsc\t:\t Uses the BLSC checking method; Default is CDLSC" << endl;
   cout << "\t -t\t:\t Prints weak until formula and exit" << endl;
@@ -38,6 +40,7 @@ ltlf_sat (int argc, char** argv)
   TVar t0, t1, t2, t3, t4, t5, t6, t7;
   bool uc = false;
   bool mus = false;
+  bool emus = false;
   bool verbose = false;
   bool evidence = false;
   int input_count = 0;
@@ -54,6 +57,11 @@ ltlf_sat (int argc, char** argv)
     else if (strcmp (argv[i], "-u") == 0)
       uc = true;
     else if (strcmp (argv[i], "-mus") == 0) {
+      mus = true;
+      uc = true;
+    }
+    else if (strcmp (argv[i], "-emus") == 0) {
+      emus = true;
       mus = true;
       uc = true;
     }
@@ -219,8 +227,10 @@ ltlf_sat (int argc, char** argv)
        checker.print_mus(); cout << endl;
        cout << "-- minimal unsatisfiable subset size: "
     << checker.get_mus_size() << endl;
-       cout << "-- enumeration of mus: " << endl;
-       checker.print_all_mus();
+     }
+     if (emus) {
+        cout << "-- enumeration of mus: " << endl;
+        checker.print_all_mus();
      }
     }
   }

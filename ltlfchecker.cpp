@@ -233,7 +233,7 @@ namespace aalta
       if (f != NULL) {
 	cout << " ";
 	if (*it < 0) cout << "!";
-	cout << f->to_string();
+	cout << f->to_string() << " (" << id << ")";
 	uc_size_++;
       }
     }
@@ -243,7 +243,7 @@ namespace aalta
   }
 
   void LTLfChecker::print_mus() {
-    std::vector<int> u = solver_->get_mus();
+    std::vector<int> u = solver_->get_mus({});
     for(auto it = u.begin(); it != u.end(); it++) {
       int id = abs(*it);
       aalta_formula * f = solver_->get_ass_formula(id);
