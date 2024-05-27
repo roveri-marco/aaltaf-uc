@@ -160,7 +160,7 @@ namespace aalta
     return std::vector<int>(mus_set.begin(), mus_set.end());
   }
 
-std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
+  std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
     std::vector<std::vector<int>> all_mus;
     std::set<int> tested_literals; 
     std::queue<int> to_test;
@@ -223,7 +223,7 @@ std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
     }
 
     return all_mus;
-}
+  }
 
 
   void AaltaSolver::resetSolver() {
