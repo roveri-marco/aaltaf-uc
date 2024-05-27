@@ -99,7 +99,7 @@ namespace aalta
         original_assumptions_.push(assumption_[i]);
     }
 
-    if (true) {
+    if (verbose_) {
         std::cout << "Initial assumptions: ";
         for (int i = 0; i < _ass.size(); i++) {
             std::cout << lit_id(_ass[i]) << " ";
