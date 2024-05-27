@@ -8,6 +8,7 @@
 #include "aaltasolver.h"
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <set>
 #include <unordered_set>
 #include <algorithm>
@@ -98,7 +99,7 @@ namespace aalta
         original_assumptions_.push(assumption_[i]);
     }
 
-    if (verbose_) {
+    if (true) {
         std::cout << "Initial assumptions: ";
         for (int i = 0; i < _ass.size(); i++) {
             std::cout << lit_id(_ass[i]) << " ";
@@ -161,51 +162,68 @@ namespace aalta
 
 std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
     std::vector<std::vector<int>> all_mus;
+    std::set<int> tested_literals; 
+    std::queue<int> to_test;
+
     auto first_mus = get_mus();
     if (!first_mus.empty()) {
         all_mus.push_back(first_mus);
-
-        if (verbose_) {
-            cout << "First MUS: ";
-            for (int lit : first_mus) {
-                cout << lit << " ";
+        for (int lit : first_mus) {
+            if (tested_literals.insert(lit).second) {
+                to_test.push(lit);
             }
-            cout << endl;
         }
+    }
+
+    if (verbose_) {
+        cout << "Initial MUS: ";
+        for (int lit : first_mus) {
+            cout << lit << " ";
+        }
+        cout << endl;
+    }
+
+    while (!to_test.empty()) {
+        int current_lit = to_test.front();
+        to_test.pop();
 
         Minisat::vec<Minisat::Lit> original_ext_assumptions;
         ext_assumption_.copyTo(original_ext_assumptions);
 
-        for (int excluded_index = 0; excluded_index < first_mus.size(); excluded_index++) {
-            resetSolver();
-            ext_assumption_.clear();
+        resetSolver();
+        ext_assumption_.clear();
 
-            for (int j = 0; j < original_ext_assumptions.size(); j++) {
-                if (lit_id(original_ext_assumptions[j]) != first_mus[excluded_index]) {
-                    ext_assumption_.push(original_ext_assumptions[j]);
-                }
+        for (int j = 0; j < original_ext_assumptions.size(); j++) {
+            if (lit_id(original_ext_assumptions[j]) != current_lit) {
+                ext_assumption_.push(original_ext_assumptions[j]);
             }
-
-            auto new_mus = get_mus();
-            if (!new_mus.empty() && !contains(all_mus, new_mus)) {
-                all_mus.push_back(new_mus);
-                if (verbose_) {
-                    cout << "New MUS found: ";
-                    for (int lit : new_mus) {
-                        cout << lit << " ";
-                    }
-                    cout << endl;
-                }
-            } else if (verbose_) {
-                cout << "No new MUS found when excluding literal " << first_mus[excluded_index] << endl;
-            }
-
-            original_ext_assumptions.copyTo(ext_assumption_);
         }
+
+        auto new_mus = get_mus();
+        if (!new_mus.empty() && !contains(all_mus, new_mus)) {
+            all_mus.push_back(new_mus);
+            if (verbose_) {
+                cout << "New MUS found when excluding " << current_lit << ": ";
+                for (int lit : new_mus) {
+                    cout << lit << " ";
+                }
+                cout << endl;
+            }
+
+            for (int lit : new_mus) {
+                if (tested_literals.insert(lit).second) {
+                    to_test.push(lit);
+                }
+            }
+        } else if (verbose_) {
+            cout << "No new MUS found when excluding " << current_lit << endl;
+        }
+
+        original_ext_assumptions.copyTo(ext_assumption_);
     }
+
     return all_mus;
 }
-
 
 
   void AaltaSolver::resetSolver() {
