@@ -84,14 +84,18 @@ namespace aalta
   //
   // X. Portare loop a top level operando solo sulle ext_assumption_ indipendentemente dal core
   std::vector<int> AaltaSolver::get_mus(const Minisat::vec<Minisat::Lit>& custom_ext_assumption) {
-    Minisat::vec<Minisat::Lit> _ass;
+    Minisat::vec<Minisat::Lit> _ass;  
     if (custom_ext_assumption.size() == 0) {
         ext_assumption_.copyTo(_ass);
     } else {
         custom_ext_assumption.copyTo(_ass);
     }
+
+    Minisat::vec<Minisat::Lit> original_assumptions_;
+
     for (int i = 0; i < assumption_.size(); i++) {
         _ass.push(assumption_[i]);
+        original_assumptions_.push(assumption_[i]);
     }
 
     if (verbose_) {
@@ -102,7 +106,7 @@ namespace aalta
         std::cout << "\n";
     }
 
-    if (solveLimited(_ass) != l_False) {
+    if (solve(_ass) != false) {
         if (verbose_) {
             std::cout << "Formula is satisfiable with the given assumptions.\n";
         }
@@ -125,7 +129,7 @@ namespace aalta
             std::cout << "\n";
         }
 
-        if (solveLimited(_ass) == l_True) {
+        if (solve(_ass) == true) {
             mus_set.insert(lit_id(removed));
             _ass.push(removed);
             i++;
@@ -139,7 +143,6 @@ namespace aalta
         }
     }
 
-    // Return the minimal unsatisfiable subset
     if (verbose_) {
         std::cout << "Final MUS: ";
         for (const auto& lit : mus_set) {
@@ -148,7 +151,68 @@ namespace aalta
         std::cout << "\n";
     }
 
+    assumption_.clear();
+    for (int i = 0; i < original_assumptions_.size(); i++) {
+        assumption_.push(original_assumptions_[i]);
+    }
+
     return std::vector<int>(mus_set.begin(), mus_set.end());
+  }
+
+std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
+    std::vector<std::vector<int>> all_mus;
+    auto first_mus = get_mus();
+    if (!first_mus.empty()) {
+        all_mus.push_back(first_mus);
+
+        if (verbose_) {
+            cout << "First MUS: ";
+            for (int lit : first_mus) {
+                cout << lit << " ";
+            }
+            cout << endl;
+        }
+
+        Minisat::vec<Minisat::Lit> original_ext_assumptions;
+        ext_assumption_.copyTo(original_ext_assumptions);
+
+        for (int excluded_index = 0; excluded_index < first_mus.size(); excluded_index++) {
+            resetSolver();
+            ext_assumption_.clear();
+
+            for (int j = 0; j < original_ext_assumptions.size(); j++) {
+                if (lit_id(original_ext_assumptions[j]) != first_mus[excluded_index]) {
+                    ext_assumption_.push(original_ext_assumptions[j]);
+                }
+            }
+
+            auto new_mus = get_mus();
+            if (!new_mus.empty() && !contains(all_mus, new_mus)) {
+                all_mus.push_back(new_mus);
+                if (verbose_) {
+                    cout << "New MUS found: ";
+                    for (int lit : new_mus) {
+                        cout << lit << " ";
+                    }
+                    cout << endl;
+                }
+            } else if (verbose_) {
+                cout << "No new MUS found when excluding literal " << first_mus[excluded_index] << endl;
+            }
+
+            original_ext_assumptions.copyTo(ext_assumption_);
+        }
+    }
+    return all_mus;
+}
+
+
+
+  void AaltaSolver::resetSolver() {
+    cancelUntil(0); 
+    // assumptions.clear(); 
+    // budgetOff();
+    // clearInterrupt();
   }
 
 
@@ -224,57 +288,6 @@ void AaltaSolver::block_mus(const std::vector<int>& mus) {
 
     addClause(blocking_clause);
 }
-
-  std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
-    std::vector<std::vector<int>> all_mus;
-    auto first_mus = get_mus();
-    if (!first_mus.empty()) {
-        all_mus.push_back(first_mus);
-
-        if (verbose_) {
-            cout << "First mus: ";
-            for (int lit : first_mus) {
-                cout << lit << " ";
-            }
-            cout << endl;
-        }
-
-        Minisat::vec<Minisat::Lit> original_assumptions;
-        for (int i = 0; i < assumption_.size(); i++) {
-            original_assumptions.push(assumption_[i]);
-        }
-        for (int i = 0; i < ext_assumption_.size(); i++) {
-            original_assumptions.push(ext_assumption_[i]);
-        }
-
-        for (int i = 0; i < first_mus.size(); i++) {
-            int lit = first_mus[i];
-
-            Minisat::vec<Minisat::Lit> new_assumptions;
-            for (int j = 0; j < original_assumptions.size(); j++) {
-                if (lit_id(original_assumptions[j]) != lit) {
-                    new_assumptions.push(original_assumptions[j]);
-                }
-            }
-
-            auto new_mus = get_mus(new_assumptions);
-            if (verbose_ && !new_mus.empty()) {
-                cout << "New mus: ";
-                for (int lit : new_mus) {
-                    cout << lit << " ";
-                }
-                cout << endl;
-            }
-            if (verbose_ && new_mus.empty()) {
-                cout << "No new mus found" << endl;
-            }
-            if (!new_mus.empty() && !contains(all_mus, new_mus)) {
-                all_mus.push_back(new_mus);
-            }
-        }
-    }
-    return all_mus;
-  }
 
 
   void AaltaSolver::add_clause (int id)

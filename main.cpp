@@ -62,7 +62,7 @@ ltlf_sat (int argc, char** argv)
     }
     else if (strcmp (argv[i], "-emus") == 0) {
       emus = true;
-      mus = true;
+      // mus = true;
       uc = true;
     }
     else if (strcmp (argv[i], "-blsc") == 0)

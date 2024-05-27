@@ -31,7 +31,7 @@ namespace aalta
     std::vector<int> get_mus(const Minisat::vec<Minisat::Lit>& custom_ext_assumption = Minisat::vec<Minisat::Lit>());     //get MUS (minimal unsatisfiable subset) from SAT solver
     std::vector<std::vector<int>> enumerate_all_mus();
     void block_mus(const std::vector<int>& mus);
-
+    void resetSolver();
 
     void add_clause (int);
     void add_clause (int, int);
