@@ -230,6 +230,26 @@ ltlf_sat (int argc, char** argv)
      }
      if (emus) {
         cout << "-- enumeration of mus: " << endl;
+        // DRAFT:
+        // checker.add_assumptions(names, false);
+        // checker.print_all_mus();
+        // ffile = (char *)malloc(strlen(argv[2])+1);
+        // sprintf(ffile, "%s", argv[2]);
+        // file = fopen(ffile, "r");
+        // aalta_formula* af;
+        // af = aalta_formula::TAIL();
+        // AaltaFormulaVec names2;
+        // AaltaFormulaVec formulas2;
+        // get_formulas(file, names2, formulas2, af, false, true);
+        // af = af->nnf();
+        // af = af->add_tail();
+        // // Rewrites weak next with N f <-> Tail | X f
+        // af = af->remove_wnext();
+        // // Simplify the formula
+        // af = af->simplify();
+        // // Pushes X over and/or operators
+        // af = af->split_next();
+        // checker.add_assumptions(names, false);
         checker.print_all_mus();
      }
     }

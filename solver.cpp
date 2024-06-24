@@ -272,6 +272,9 @@
    }
 
    bool Solver::add_assumptions(std::vector<aalta_formula *> & ass) {
+    // ext_assumption_.clear();
+    // ext_assumption_map_.clear();
+
      for (std::vector<aalta_formula *>::iterator it = ass.begin();
 	  it!= ass.end (); it ++) {
        if ((*it) == NULL)

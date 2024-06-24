@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug aaltaf",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/aaltaf",
+            "args": ["-f", "examples/p10.ltl", "-emus"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "make debug",
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ]
+}

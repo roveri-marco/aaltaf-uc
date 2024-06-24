@@ -92,11 +92,8 @@ namespace aalta
         custom_ext_assumption.copyTo(_ass);
     }
 
-    Minisat::vec<Minisat::Lit> original_assumptions_;
-
     for (int i = 0; i < assumption_.size(); i++) {
         _ass.push(assumption_[i]);
-        original_assumptions_.push(assumption_[i]);
     }
 
     if (verbose_) {
@@ -107,7 +104,7 @@ namespace aalta
         std::cout << "\n";
     }
 
-    if (solve(_ass) != false) {
+    if (solve(_ass)) {
         if (verbose_) {
             std::cout << "Formula is satisfiable with the given assumptions.\n";
         }
@@ -130,7 +127,7 @@ namespace aalta
             std::cout << "\n";
         }
 
-        if (solve(_ass) == true) {
+        if (solve(_ass)) {
             mus_set.insert(lit_id(removed));
             _ass.push(removed);
             i++;
@@ -152,85 +149,126 @@ namespace aalta
         std::cout << "\n";
     }
 
-    assumption_.clear();
-    for (int i = 0; i < original_assumptions_.size(); i++) {
-        assumption_.push(original_assumptions_[i]);
-    }
-
     return std::vector<int>(mus_set.begin(), mus_set.end());
+  }
+
+  int AaltaSolver::litVectorToHash(const Minisat::vec<Minisat::Lit>& v) {
+    int hash = 0;
+    for (int i = 0; i < v.size(); i++) {
+        hash = hash * 31 + lit_id(v[i]);
+    }
+    return hash;
+  }
+
+  void AaltaSolver::exploreLiteralCombinations(Minisat::vec<Minisat::Lit>& lits, int index, Minisat::vec<Minisat::Lit>& current, std::set<int>& generated, std::vector<std::vector<int>>& all_mus) {
+    if (index == lits.size()) {
+        if (current.size() > 0) {
+            int hashValue = litVectorToHash(current);
+            if (generated.find(hashValue) == generated.end()) {
+                processPermutations(current, 0, current.size() - 1, all_mus);
+                generated.insert(hashValue);
+            }
+        }
+    } else {
+        current.push(lits[index]);
+        exploreLiteralCombinations(lits, index + 1, current, generated, all_mus);
+
+        current.pop();
+        exploreLiteralCombinations(lits, index + 1, current, generated, all_mus);
+    }
+  }
+
+
+  void AaltaSolver::processPermutations(Minisat::vec<Minisat::Lit>& combination, int start, int end, std::vector<std::vector<int>>& all_mus) {
+      if (start == end) {
+          Minisat::vec<Minisat::Lit> original_ext_assumptions;
+          ext_assumption_.copyTo(original_ext_assumptions);
+
+          ext_assumption_.clear();
+
+          // Only include lits in original_ext_assumptions that are NOT in the current permutation
+          for (int j = 0; j < original_ext_assumptions.size(); j++) {
+              bool found = false;
+              for (int k = 0; k < combination.size(); k++) {
+                  if (original_ext_assumptions[j] == combination[k]) {
+                      found = true;
+                      break;
+                  }
+              }
+              if (!found) {
+                  ext_assumption_.push(original_ext_assumptions[j]);
+              }
+          }
+
+          if(verbose_) {
+            cout << "Current combination: ";
+            for (int i = 0; i < combination.size(); i++) {
+                cout << lit_id(combination[i]) << " ";
+            }
+            cout << "    Current ext_assumptions_: ";
+            for (int i = 0; i < ext_assumption_.size(); i++) {
+                cout << lit_id(ext_assumption_[i]) << " ";
+            }
+            cout << endl;
+          }
+
+            auto mus = get_mus();
+            if (!empty(mus) && !contains(all_mus, mus)) {
+                all_mus.push_back(mus);
+                if(verbose_) {
+                  cout << "New MUS found:";
+                  for (auto lit : mus) {
+                      cout << " " << lit;
+                  }
+                  cout << endl;
+                }
+            }
+
+          original_ext_assumptions.copyTo(ext_assumption_);
+      } else {
+          for (int i = start; i <= end; i++) {
+              std::swap(combination[start], combination[i]);
+              processPermutations(combination, start + 1, end, all_mus);
+              std::swap(combination[start], combination[i]);
+          }
+      }
   }
 
   std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
     std::vector<std::vector<int>> all_mus;
-    std::set<int> tested_literals; 
-    std::queue<int> to_test;
+    std::set<int> unique_lits;
 
-    auto first_mus = get_mus();
-    if (!first_mus.empty()) {
-        all_mus.push_back(first_mus);
-        for (int lit : first_mus) {
-            if (tested_literals.insert(lit).second) {
-                to_test.push(lit);
-            }
-        }
+    std::vector<int> initial_mus = get_mus();
+    for (int lit : initial_mus) {
+        unique_lits.insert(lit);
     }
 
-    if (verbose_) {
-        cout << "Initial MUS: ";
-        for (int lit : first_mus) {
-            cout << lit << " ";
-        }
-        cout << endl;
-    }
-
-    while (!to_test.empty()) {
-        int current_lit = to_test.front();
-        to_test.pop();
-
-        Minisat::vec<Minisat::Lit> original_ext_assumptions;
-        ext_assumption_.copyTo(original_ext_assumptions);
-
-        resetSolver();
-        ext_assumption_.clear();
-
-        for (int j = 0; j < original_ext_assumptions.size(); j++) {
-            if (lit_id(original_ext_assumptions[j]) != current_lit) {
-                ext_assumption_.push(original_ext_assumptions[j]);
-            }
+    bool found_new;
+    do {
+        found_new = false;
+        Minisat::vec<Minisat::Lit> mus_as_lits;
+        for (int lit : unique_lits) {
+            mus_as_lits.push(SAT_lit(lit));
         }
 
-        auto new_mus = get_mus();
-        if (!new_mus.empty() && !contains(all_mus, new_mus)) {
-            all_mus.push_back(new_mus);
-            if (verbose_) {
-                cout << "New MUS found when excluding " << current_lit << ": ";
-                for (int lit : new_mus) {
-                    cout << lit << " ";
-                }
-                cout << endl;
-            }
+        std::set<int> generated;
+        Minisat::vec<Minisat::Lit> current;
+        exploreLiteralCombinations(mus_as_lits, 0, current, generated, all_mus);
 
-            for (int lit : new_mus) {
-                if (tested_literals.insert(lit).second) {
-                    to_test.push(lit);
+        std::set<int> new_lits;
+        for (const auto& mus : all_mus) {
+            for (int lit : mus) {
+                if (unique_lits.insert(lit).second) {
+                    new_lits.insert(lit);
                 }
             }
-        } else if (verbose_) {
-            cout << "No new MUS found when excluding " << current_lit << endl;
         }
 
-        original_ext_assumptions.copyTo(ext_assumption_);
-    }
-
+        if (!new_lits.empty()) {
+            found_new = true;
+        }
+    } while (found_new);
     return all_mus;
-  }
-
-
-  void AaltaSolver::resetSolver() {
-    cancelUntil(0); 
-    // assumptions.clear(); 
-    // budgetOff();
-    // clearInterrupt();
   }
 
 
@@ -273,39 +311,23 @@ namespace aalta
     */
   }
 
-bool AaltaSolver::contains(const std::vector<std::vector<int>>& all_mus, const std::vector<int>& mus) {
-    for (const auto& existing_mus : all_mus) {
-        if (is_equal_set(existing_mus, mus)) {
-            // cout << "Mus already exists" << endl;
-            return true;
-        }
-    }
-    // cout << "Mus does not exist" << endl;
-    return false;
-}
+  bool AaltaSolver::contains(const std::vector<std::vector<int>>& all_mus, const std::vector<int>& mus) {
+      for (const auto& existing_mus : all_mus) {
+          if (is_equal_set(existing_mus, mus)) {
+              // cout << "Mus already exists" << endl;
+              return true;
+          }
+      }
+      // cout << "Mus does not exist" << endl;
+      return false;
+  }
 
-bool AaltaSolver::is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2) {
-    if (set1.size() != set2.size()) return false;
-    std::unordered_set<int> s1(set1.begin(), set1.end());
-    std::unordered_set<int> s2(set2.begin(), set2.end());
-    return s1 == s2;
-}
-
-void AaltaSolver::block_mus(const std::vector<int>& mus) {
-    vec<Lit> blocking_clause;
-
-    // cout << "Blocking MUS: ";
-
-    for (int lit : mus) {
-        // cout << lit << " ";
-        Lit negated_lit = SAT_lit(-lit); 
-        
-        blocking_clause.push(negated_lit);
-    }
-    // cout << endl;
-
-    addClause(blocking_clause);
-}
+  bool AaltaSolver::is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2) {
+      if (set1.size() != set2.size()) return false;
+      std::unordered_set<int> s1(set1.begin(), set1.end());
+      std::unordered_set<int> s2(set2.begin(), set2.end());
+      return s1 == s2;
+  }
 
 
   void AaltaSolver::add_clause (int id)

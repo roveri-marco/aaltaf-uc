@@ -30,19 +30,17 @@ namespace aalta
     std::vector<int> get_uc ();       //get UC from SAT solver
     std::vector<int> get_mus(const Minisat::vec<Minisat::Lit>& custom_ext_assumption = Minisat::vec<Minisat::Lit>());     //get MUS (minimal unsatisfiable subset) from SAT solver
     std::vector<std::vector<int>> enumerate_all_mus();
-    void block_mus(const std::vector<int>& mus);
-    void resetSolver();
 
     void add_clause (int);
     void add_clause (int, int);
     void add_clause (int, int, int);
     void add_clause (int, int, int, int);
     void add_clause (std::vector<int>&);
-
     bool contains(const std::vector<std::vector<int>>& all_mus, const std::vector<int>& mus);
-bool is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2);
-
-
+    bool is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2);
+    int litVectorToHash(const Minisat::vec<Minisat::Lit>& v);
+    void exploreLiteralCombinations(Minisat::vec<Minisat::Lit>& lits, int index, Minisat::vec<Minisat::Lit>& current, std::set<int>& generated, std::vector<std::vector<int>>& all_mus);
+    void processPermutations(Minisat::vec<Minisat::Lit>& combination, int start, int end, std::vector<std::vector<int>>& all_mus);
     Minisat::Lit SAT_lit (int id); //create the Lit used in SAT solver for the id.
     int lit_id (Minisat::Lit);  //return the id of SAT lit
 
