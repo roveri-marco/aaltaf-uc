@@ -153,11 +153,11 @@ namespace aalta
   }
 
   int AaltaSolver::litVectorToHash(const Minisat::vec<Minisat::Lit>& v) {
-    int hash = 0;
-    for (int i = 0; i < v.size(); i++) {
-        hash = hash * 31 + lit_id(v[i]);
-    }
-    return hash;
+      std::size_t hash = 0;
+      for (int i = 0; i < v.size(); i++) {
+          hash = hash ^ (std::hash<int>{}(lit_id(v[i])) + 0x9e3779b9 + (hash << 6) + (hash >> 2));
+      }
+      return static_cast<int>(hash);
   }
 
   void AaltaSolver::exploreLiteralCombinations(Minisat::vec<Minisat::Lit>& lits, int index, Minisat::vec<Minisat::Lit>& current, std::set<int>& generated, std::vector<std::vector<int>>& all_mus) {
