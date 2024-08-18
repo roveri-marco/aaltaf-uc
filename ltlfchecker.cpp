@@ -233,7 +233,7 @@ namespace aalta
       if (f != NULL) {
 	cout << " ";
 	if (*it < 0) cout << "!";
-	cout << f->to_string() << " (" << id << ")";
+	cout << f->to_string() /*<< " (" << id << ")"*/;
 	uc_size_++;
       }
     }
@@ -268,7 +268,7 @@ namespace aalta
         aalta_formula * f = solver_->get_ass_formula(id);
         if (f != NULL) {
           if (*it < 0) cout << "!";
-            cout << f->to_string() << " (" << id << ")";
+            cout << f->to_string() /*<< " (" << id << ")"*/;
             len++;
             cout << " ";
             }
