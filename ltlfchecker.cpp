@@ -260,23 +260,30 @@ namespace aalta
   }
 
   void LTLfChecker::print_all_mus() {
-    std::vector<std::vector<int>> all_mus = solver_->enumerate_all_mus();
-    for(const auto& mus : all_mus) {
-        int len = 0;
-        for(auto it = mus.begin(); it != mus.end(); it++) {
-        int id = abs(*it);
-        aalta_formula * f = solver_->get_ass_formula(id);
-        if (f != NULL) {
-          if (*it < 0) cout << "!";
-            cout << f->to_string() /*<< " (" << id << ")"*/;
-            len++;
-            cout << " ";
-            }
+      std::vector<std::vector<int>> all_mus = solver_->enumerate_all_mus();
+      int mus_count = 1;
+
+      for (const auto& mus : all_mus) {
+          int len = 0;
+          cout << "-- MUS #" << mus_count << ": ";
+          for (auto it = mus.begin(); it != mus.end(); ++it) {
+              int id = abs(*it);
+              aalta_formula *f = solver_->get_ass_formula(id);
+
+              if (f != NULL) {
+                  if (*it < 0) cout << "!";
+                  cout << f->to_string() /*<< " (" << id << ")"*/;
+                  len++;
+                  if (std::next(it) != mus.end()) {
+                      cout << " "; 
+                  }
+              }
           }
 
-          cout << "\nMus size: " << len << '\n';
-        }
-    }
+          cout << "\n-- Mus size: " << len << "\n";
+          mus_count++;
+      }
+  }
 
   void LTLfChecker::print_formulas_id (aalta_formula* f)
   {
