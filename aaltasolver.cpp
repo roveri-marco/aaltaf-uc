@@ -154,8 +154,9 @@ namespace aalta
 
   int AaltaSolver::litVectorToHash(const Minisat::vec<Minisat::Lit>& v) {
       std::size_t hash = 0;
+      int GOLDEN_RATIO = 0x9e3779b9;
       for (int i = 0; i < v.size(); i++) {
-          hash = hash ^ (std::hash<int>{}(lit_id(v[i])) + 0x9e3779b9 + (hash << 6) + (hash >> 2));
+          hash = hash ^ (std::hash<int>{}(lit_id(v[i])) + GOLDEN_RATIO + (hash << 6) + (hash >> 2));
       }
       return static_cast<int>(hash);
   }
