@@ -223,9 +223,9 @@ ltlf_sat (int argc, char** argv)
       cout << "-- unsat core size: "
 	   << checker.get_uc_size() << endl;
      if (mus) {
-       cout << "-- minimal unsatisfiable subset:";
+       cout << "-- minimal unsatisfiable core:";
        checker.print_mus(); cout << endl;
-       cout << "-- minimal unsatisfiable subset size: "
+       cout << "-- minimal unsatisfiable core size: "
     << checker.get_mus_size() << endl;
      }
      if (emus) {
