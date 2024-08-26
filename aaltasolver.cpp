@@ -323,12 +323,29 @@ namespace aalta
       return false;
   }
 
-  bool AaltaSolver::is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2) {
-      if (set1.size() != set2.size()) return false;
-      std::unordered_set<int> s1(set1.begin(), set1.end());
-      std::unordered_set<int> s2(set2.begin(), set2.end());
-      return s1 == s2;
-  }
+bool AaltaSolver::is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2) {
+    std::unordered_set<int> valid_lits;
+    
+    for (int i = 0; i < ext_assumption_.size(); i++) {
+        valid_lits.insert(lit_id(ext_assumption_[i]));
+    }
+    
+    std::unordered_set<int> valid_set1, valid_set2;
+    
+    for (int id : set1) {
+        if (valid_lits.find(id) != valid_lits.end()) {
+            valid_set1.insert(id);
+        }
+    }
+    
+    for (int id : set2) {
+        if (valid_lits.find(id) != valid_lits.end()) {
+            valid_set2.insert(id);
+        }
+    }
+    
+    return valid_set1 == valid_set2;
+}
 
 
   void AaltaSolver::add_clause (int id)
