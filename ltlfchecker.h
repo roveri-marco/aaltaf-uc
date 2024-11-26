@@ -63,7 +63,21 @@ class LTLfChecker
   Evidence* evidence_;
   unsigned int uc_size_ = 0;
   unsigned int mus_size_ = 0;
-
+    std::vector<std::vector<int>> enumerate_all_mus();
+    int litVectorToHash(const Minisat::vec<Minisat::Lit>& v);
+    void exploreLiteralCombinations(Minisat::vec<Minisat::Lit>& lits, int index, 
+                                  Minisat::vec<Minisat::Lit>& current, 
+                                  std::set<int>& generated,
+                                  std::vector<std::vector<int>>& all_mus);
+    void processPermutations(Minisat::vec<Minisat::Lit>& combination,
+                           int start, int end,
+                           std::vector<std::vector<int>>& all_mus);
+    bool contains(const std::vector<std::vector<int>>& all_mus,
+                 const std::vector<int>& mus);
+    bool is_equal_set(const std::vector<int>& set1,
+                     const std::vector<int>& set2);
+    bool empty(const std::vector<int>& v) { return v.empty(); }
+    std::vector<int> get_mus(const Minisat::vec<Minisat::Lit>& custom_assumption);
 
   //////////functions
   bool sat_once (aalta_formula* f);   //check whether the formula can be satisfied in one step (the terminating condition of checking)
@@ -83,7 +97,6 @@ class LTLfChecker
 
   inline bool detect_unsat () {return solver_->unsat_forever ();}
 };
-
 }
 
 #endif

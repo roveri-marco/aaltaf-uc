@@ -70,6 +70,11 @@ namespace aalta
       return ext_assumption_map_[id];
     }
 
+        Minisat::vec<Minisat::Lit>& get_ext_assumption() { return ext_assumption_; }
+    void clear_ext_assumption() { ext_assumption_.clear(); }
+    void add_to_ext_assumption(Minisat::Lit lit) { ext_assumption_.push(lit); }
+const Minisat::vec<Minisat::Lit>& get_assumption() const { return assumption_; }
+    bool solve(const Minisat::vec<Minisat::Lit>& assumptions);
   protected:
     ////////////members
     int tail_;   //the integer used to represent Tail. It is fixed to be f->id ()+1

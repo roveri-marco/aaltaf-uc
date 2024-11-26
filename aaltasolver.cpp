@@ -181,7 +181,7 @@ namespace aalta
 
 
   void AaltaSolver::processPermutations(Minisat::vec<Minisat::Lit>& combination, int start, int end, std::vector<std::vector<int>>& all_mus) {
-      if (start == end) {
+      if (true) {
           Minisat::vec<Minisat::Lit> original_ext_assumptions;
           ext_assumption_.copyTo(original_ext_assumptions);
 
@@ -236,40 +236,40 @@ namespace aalta
   }
 
   std::vector<std::vector<int>> AaltaSolver::enumerate_all_mus() {
-    std::vector<std::vector<int>> all_mus;
-    std::set<int> unique_lits;
+    // std::vector<std::vector<int>> all_mus;
+    // std::set<int> unique_lits;
 
-    std::vector<int> initial_mus = get_mus();
-    for (int lit : initial_mus) {
-        unique_lits.insert(lit);
-    }
+    // std::vector<int> initial_mus = get_mus();
+    // for (int lit : initial_mus) {
+    //     unique_lits.insert(lit);
+    // }
 
-    bool found_new;
-    do {
-        found_new = false;
-        Minisat::vec<Minisat::Lit> mus_as_lits;
-        for (int lit : unique_lits) {
-            mus_as_lits.push(SAT_lit(lit));
-        }
+    // bool found_new;
+    // do {
+    //     found_new = false;
+    //     Minisat::vec<Minisat::Lit> mus_as_lits;
+    //     for (int lit : unique_lits) {
+    //         mus_as_lits.push(SAT_lit(lit));
+    //     }
 
-        std::set<int> generated;
-        Minisat::vec<Minisat::Lit> current;
-        exploreLiteralCombinations(mus_as_lits, 0, current, generated, all_mus);
+    //     std::set<int> generated;
+    //     Minisat::vec<Minisat::Lit> current;
+    //     exploreLiteralCombinations(mus_as_lits, 0, current, generated, all_mus);
 
-        std::set<int> new_lits;
-        for (const auto& mus : all_mus) {
-            for (int lit : mus) {
-                if (unique_lits.insert(lit).second) {
-                    new_lits.insert(lit);
-                }
-            }
-        }
+    //     std::set<int> new_lits;
+    //     for (const auto& mus : all_mus) {
+    //         for (int lit : mus) {
+    //             if (unique_lits.insert(lit).second) {
+    //                 new_lits.insert(lit);
+    //             }
+    //         }
+    //     }
 
-        if (!new_lits.empty()) {
-            found_new = true;
-        }
-    } while (found_new);
-    return all_mus;
+    //     if (!new_lits.empty()) {
+    //         found_new = true;
+    //     }
+    // } while (found_new);
+    // return all_mus;
   }
 
 

@@ -287,6 +287,18 @@
      return true;
    }
 
+   bool Solver::solve(const Minisat::vec<Minisat::Lit>& assumptions) 
+{
+    Minisat::vec<Minisat::Lit> _ass;
+    assumptions.copyTo(_ass);
+    lbool ret = solveLimited(_ass);
+    if (ret == l_True)
+        return true;
+    else if (ret == l_Undef)
+        exit(0);
+    return false;
+}
+
    //check whether the formula \@ f can be the last state (tail)
    bool Solver::check_tail (aalta_formula *f)
    {
