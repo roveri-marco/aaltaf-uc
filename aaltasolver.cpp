@@ -181,7 +181,7 @@ namespace aalta
 
 
   void AaltaSolver::processPermutations(Minisat::vec<Minisat::Lit>& combination, int start, int end, std::vector<std::vector<int>>& all_mus) {
-      if (start == end) {
+      if (true) {
           Minisat::vec<Minisat::Lit> original_ext_assumptions;
           ext_assumption_.copyTo(original_ext_assumptions);
 
@@ -214,7 +214,7 @@ namespace aalta
           }
 
             auto mus = get_mus();
-            if (!empty(mus) && !contains(all_mus, mus)) {
+            if (!mus.empty() && !contains(all_mus, mus)) {
                 all_mus.push_back(mus);
                 if(verbose_) {
                   cout << "New MUS found:";

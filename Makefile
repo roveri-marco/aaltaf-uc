@@ -16,10 +16,22 @@ ALLFILES     =	$(CHECKING) $(SOLVER) $(FORMULAFILES) $(PARSERFILES) $(UTILFILES)
 
 ALLF_OBJS := $(ALLFILES:%=%.o)
 
-CC	    =   g++
-FLAG    = -I./  -I./minisat/  -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
-DEBUGFLAG   =	-DDEBUG -g -pg
-RELEASEFLAG =	-O2 -g
+UNAME_S := $(shell uname -s)
+CC      =   g++
+CXX     =   g++
+
+BASE_FLAGS = -I./  -I./minisat/  -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
+
+ifeq ($(UNAME_S),Darwin)
+    BASE_FLAGS += -std=c++11
+endif
+
+DEBUGFLAG   =   -DDEBUG -g -pg
+RELEASEFLAG =   -O2 -g
+
+FLAG = $(BASE_FLAGS)
+
+aaltaf :	release
 
 
 aaltaf :	release
