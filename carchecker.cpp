@@ -117,6 +117,7 @@ bool CARChecker::check() {
     print_formulas_id(to_check_);
   }
 
+
   if (to_check_->oper() == aalta_formula::True) {
     if (evidence_ != NULL)
       evidence_->push(true);
@@ -130,10 +131,20 @@ bool CARChecker::check() {
   if (ret != UNKNOW)
     return (ret == SAT ? true : false);
 
-  return car_check(to_check_);
+  bool res = car_check(to_check_);
+
+  cout << "CARChecker::after car_check\n";
+  // cout assumptuosn_
+  for (int i = 0; i < solver_->assumption_.size(); i++) {
+    cout << solver_->lit_id(solver_->assumption_[i]) << " ";
+  }
+
+
+  return res;
 }
 
 bool CARChecker::car_check(aalta_formula* f) {
+// TODO: investigate about this part.
   if (sat_once(f)) {
     if (verbose_)
       cout << "sat once is true, return from here\n";

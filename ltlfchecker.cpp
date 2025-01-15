@@ -285,46 +285,44 @@ void LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas) {
   std::vector<int> ext_assumptions = get_external_assumptions(to_check_);
 
   // Check if formula is UNSAT
-  if (!check()) {
-    // Extract first MUS
-    // TODO: in this way, we are pushing also assumption_
-    std::vector<int> mus = solver_->get_mus({});
+  // Extract first MUS
+  // TODO: in this way, we are pushing also assumption_
+  std::vector<int> mus = solver_->get_mus({});
 
-    if (!mus.empty()) {
-      all_mus.push_back(mus);
+  if (!mus.empty()) {
+    all_mus.push_back(mus);
 
-      // Initialize boolean solver for model enumeration
-      bool_solver_ = new AaltaSolver(verbose_);
-      initialize_bool_solver(ext_assumptions);
-      block_up(mus);
+    // Initialize boolean solver for model enumeration
+    bool_solver_ = new AaltaSolver(verbose_);
+    initialize_bool_solver(ext_assumptions);
+    block_up(mus);
 
-      // TODO: fix this loop
-      while (false) {
-        if (!bool_solver_->solve_assumption()) {
-          break;
-        }
-
-        std::vector<int> new_assumptions = get_model_assumptions();
-
-        // Create fresh checker for each iteration
-        CARChecker* new_checker = new CARChecker(to_check_, verbose_);
-        new_checker->add_assumptions(formulas);
-
-        if (!new_checker->check()) {
-          std::vector<int> new_mus = extract_single_mus(to_check_, new_assumptions);
-          if (!new_mus.empty()) {
-            all_mus.push_back(new_mus);
-            block_up(new_mus);
-          }
-        } else {
-          block_down(new_assumptions);
-        }
-
-        delete new_checker;
+    // TODO: fix this loop
+    while (false) {
+      if (!bool_solver_->solve_assumption()) {
+        break;
       }
 
-      delete bool_solver_;
+      std::vector<int> new_assumptions = get_model_assumptions();
+
+      // Create fresh checker for each iteration
+      CARChecker* new_checker = new CARChecker(to_check_, verbose_);
+      new_checker->add_assumptions(formulas);
+
+      if (!new_checker->check()) {
+        std::vector<int> new_mus = extract_single_mus(to_check_, new_assumptions);
+        if (!new_mus.empty()) {
+          all_mus.push_back(new_mus);
+          block_up(new_mus);
+        }
+      } else {
+        block_down(new_assumptions);
+      }
+
+      delete new_checker;
     }
+
+    delete bool_solver_;
   }
 
   // Print results

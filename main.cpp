@@ -162,6 +162,7 @@ void ltlf_sat(int argc, char** argv) {
     uc = false; // this is because we want to manage the assumptions ourselves
     CARChecker checker(af, verbose, evidence);
     checker.add_assumptions(names);
+    checker.check();
     checker.enumerate_all_mus_v2(names);
     return;
   }
@@ -206,6 +207,7 @@ void ltlf_sat(int argc, char** argv) {
            << to_string(chrono::duration_cast<chrono::nanoseconds>(t4 - t3).count() / 1e9) << endl;
     }
     bool res = checker.check();
+    // bool res = false;
     t5       = chrono::high_resolution_clock::now();
     cout << "-- Checker check time: "
          << to_string(chrono::duration_cast<chrono::nanoseconds>(t5 - t4).count() / 1e9) << endl;
@@ -214,13 +216,13 @@ void ltlf_sat(int argc, char** argv) {
     } else {
       cout << "-- The set of formulas is " << (res ? "sat" : "unsat") << endl;
     }
-    if (evidence && res)
-      checker.print_evidence();
+    // if (evidence && res)
+    //   checker.print_evidence();
     if (uc && !res) {
       cout << "-- unsat core:";
-      checker.print_uc();
-      cout << endl;
-      cout << "-- unsat core size: " << checker.get_uc_size() << endl;
+      // checker.print_uc();
+      // cout << endl;
+      // cout << "-- unsat core size: " << checker.get_uc_size() << endl;
       if (mus) {
         cout << "-- minimal unsatisfiable core:";
         checker.print_mus();
