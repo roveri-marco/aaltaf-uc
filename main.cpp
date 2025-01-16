@@ -65,7 +65,6 @@ void ltlf_sat(int argc, char** argv) {
       uc = true;
     } else if (strcmp(argv[i], "-emus2") == 0) {
       emus2 = true;
-      uc    = true;
     } else if (strcmp(argv[i], "-blsc") == 0)
       blsc = true;
     else if (strcmp(argv[i], "-t") == 0)
@@ -109,6 +108,37 @@ void ltlf_sat(int argc, char** argv) {
   AaltaFormulaVec formulas;
   // set tail id to be 1
   af = aalta_formula::TAIL();
+
+  if (emus2) {
+    get_formulas(file, names, formulas, af);
+    if (file != stdin)
+      fclose(file);
+    if (print_weak_until_free || print_formula_and_continue) {
+      auto n = names.begin();
+      auto f = formulas.begin();
+      for (; n != names.end();) {
+        auto el  = *n;
+        auto el1 = *f;
+        cout << "" << el->to_string() << " := " << el1->to_string() << ";" << endl;
+        n++;
+        f++;
+      }
+      if (!print_formula_and_continue)
+        return;
+    }
+
+    af = af->nnf();
+    af = af->add_tail();
+    af = af->remove_wnext();
+    af = af->simplify();
+    af = af->split_next();
+    
+    CARChecker checker(af, verbose, evidence);
+    checker.add_assumptions(names);
+    if (!checker.check())
+      checker.enumerate_all_mus_v2(names);
+    return;
+  }
 
   if (uc) {
     t0 = chrono::high_resolution_clock::now();
@@ -157,15 +187,6 @@ void ltlf_sat(int argc, char** argv) {
        << to_string(chrono::duration_cast<chrono::nanoseconds>(t2 - t1).count() / 1e9) << endl;
 
   // cout << af->to_string() << endl;
-
-  if (emus2) {
-    uc = false; // this is because we want to manage the assumptions ourselves
-    CARChecker checker(af, verbose, evidence);
-    checker.add_assumptions(names);
-    checker.check();
-    checker.enumerate_all_mus_v2(names);
-    return;
-  }
 
   if (blsc) {
     LTLfChecker checker(af, verbose, evidence);
