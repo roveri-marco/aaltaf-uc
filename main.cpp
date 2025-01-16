@@ -113,26 +113,13 @@ void ltlf_sat(int argc, char** argv) {
     get_formulas(file, names, formulas, af);
     if (file != stdin)
       fclose(file);
-    if (print_weak_until_free || print_formula_and_continue) {
-      auto n = names.begin();
-      auto f = formulas.begin();
-      for (; n != names.end();) {
-        auto el  = *n;
-        auto el1 = *f;
-        cout << "" << el->to_string() << " := " << el1->to_string() << ";" << endl;
-        n++;
-        f++;
-      }
-      if (!print_formula_and_continue)
-        return;
-    }
 
     af = af->nnf();
     af = af->add_tail();
     af = af->remove_wnext();
     af = af->simplify();
     af = af->split_next();
-    
+
     CARChecker checker(af, verbose, evidence);
     checker.add_assumptions(names);
     if (!checker.check())
