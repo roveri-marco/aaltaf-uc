@@ -131,16 +131,7 @@ bool CARChecker::check() {
   if (ret != UNKNOW)
     return (ret == SAT ? true : false);
 
-  bool res = car_check(to_check_);
-
-  cout << "CARChecker::after car_check\n";
-  // cout assumptuosn_
-  for (int i = 0; i < solver_->assumption_.size(); i++) {
-    cout << solver_->lit_id(solver_->assumption_[i]) << " ";
-  }
-
-
-  return res;
+  return car_check(to_check_);
 }
 
 bool CARChecker::car_check(aalta_formula* f) {
