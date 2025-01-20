@@ -279,7 +279,7 @@ void LTLfChecker::print_formulas_id(aalta_formula* f) {
 
 // p8.ltl: 9 (P0) 14 (P1)
 void LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas) {
-  external_assumptions_ = get_external_assumptions(to_check_);
+  // external_assumptions_ = get_external_assumptions(to_check_);
 
   std::vector<int> mus = solver_->get_mus({});
 
@@ -288,7 +288,7 @@ void LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas) {
     print_mus(mus);
 
     bool_solver_ = new AaltaSolver(verbose_);
-    initialize_bool_solver(external_assumptions_);
+    // initialize_bool_solver();
 
     block_up(mus);
 
@@ -321,6 +321,7 @@ void LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas) {
       delete new_checker;
       break;
     }
+
     delete bool_solver_;
   }
 }
