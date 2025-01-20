@@ -279,40 +279,39 @@ void LTLfChecker::print_formulas_id(aalta_formula* f) {
 
 // p8.ltl: 9 (P0) 14 (P1)
 void LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas) {
-  std::vector<std::vector<int>> all_mus;
+  external_assumptions_ = get_external_assumptions(to_check_);
 
-  // Extract external assumptions
-  std::vector<int> ext_assumptions = get_external_assumptions(to_check_);
-
-  // Check if formula is UNSAT
-  // Extract first MUS
-  // TODO: in this way, we are pushing also assumption_
   std::vector<int> mus = solver_->get_mus({});
 
   if (!mus.empty()) {
-    all_mus.push_back(mus);
+    std::cout << "-- Initial MUS found: ";
+    print_mus(mus);
 
-    // Initialize boolean solver for model enumeration
     bool_solver_ = new AaltaSolver(verbose_);
-    initialize_bool_solver(ext_assumptions);
+    initialize_bool_solver(external_assumptions_);
+
     block_up(mus);
 
-    // TODO: fix this loop
-    while (false) {
+    while (true) {
       if (!bool_solver_->solve_assumption()) {
         break;
       }
 
       std::vector<int> new_assumptions = get_model_assumptions();
 
-      // Create fresh checker for each iteration
       CARChecker* new_checker = new CARChecker(to_check_, verbose_);
       new_checker->add_assumptions(formulas);
+
+      Minisat::vec<Minisat::Lit> custom_assumptions;
+      for (int assumption : new_assumptions) {
+        custom_assumptions.push(new_checker->solver_->SAT_lit(assumption));
+      }
 
       if (!new_checker->check()) {
         std::vector<int> new_mus = extract_single_mus(to_check_, new_assumptions);
         if (!new_mus.empty()) {
-          all_mus.push_back(new_mus);
+          std::cout << "-- Additional MUS found: ";
+          print_mus(new_mus);
           block_up(new_mus);
         }
       } else {
@@ -320,34 +319,27 @@ void LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas) {
       }
 
       delete new_checker;
+      break;
     }
-
     delete bool_solver_;
-  }
-
-  // Print results
-  for (size_t i = 0; i < all_mus.size(); i++) {
-    std::cout << "-- MUS #" << (i + 1) << ": ";
-    for (int id : all_mus[i]) {
-      aalta_formula* f = solver_->get_ass_formula(abs(id));
-      if (f != NULL) {
-        std::cout << f->to_string() << " ";
-      }
-    }
-    std::cout << "\n";
   }
 }
 
 std::vector<int> LTLfChecker::extract_single_mus(aalta_formula*          gamma,
-                                                 const std::vector<int>& ext_assumptions) {
+                                                 const std::vector<int>& new_assumptions) {
   Minisat::vec<Minisat::Lit> custom_assumptions;
-  for (int assumption : ext_assumptions) {
-    custom_assumptions.push(solver_->SAT_lit(assumption));
+
+  for (int ext_ass : external_assumptions_) {
+    custom_assumptions.push(solver_->SAT_lit(ext_ass));
   }
+
+  for (int new_ass : new_assumptions) {
+    custom_assumptions.push(solver_->SAT_lit(new_ass));
+  }
+
   return solver_->get_mus(custom_assumptions);
 }
 
-// Helper to print a MUS
 void LTLfChecker::print_mus(const std::vector<int>& mus) {
   for (int id : mus) {
     aalta_formula* f = solver_->get_ass_formula(abs(id));

@@ -80,22 +80,25 @@ std::vector<int> AaltaSolver::get_model() {
 //
 // X. Portare loop a top level operando solo sulle ext_assumption_ indipendentemente dal core
 std::vector<int> AaltaSolver::get_mus(const Minisat::vec<Minisat::Lit>& custom_ext_assumption) {
-    Minisat::vec<Minisat::Lit> _ass;
-    if (custom_ext_assumption.size() == 0) {
-        ext_assumption_.copyTo(_ass);
-        for (int i = 0; i < assumption_.size(); i++) {
-            _ass.push(assumption_[i]);
-        }
-    } else {
-        custom_ext_assumption.copyTo(_ass);
-    }
+  Minisat::vec<Minisat::Lit> _ass;
 
-    std::cout << "Testing assumptions:\n";
-    for (int i = 0; i < _ass.size(); i++) {
-        int id = lit_id(_ass[i]);
-            std::cout << id << " ";
-;    }
-    std::cout << "\nTotal assumptions: " << _ass.size() << "\n";
+  ext_assumption_.copyTo(_ass);
+
+  if (custom_ext_assumption.size() > 0) {
+    for (int i = 0; i < custom_ext_assumption.size(); i++) {
+      _ass.push(custom_ext_assumption[i]);
+    }
+  }
+
+  for (int i = 0; i < assumption_.size(); i++) {
+    _ass.push(assumption_[i]);
+  }
+
+  std::cout << "Testing assumptions:\n";
+  for (int i = 0; i < _ass.size(); i++) {
+    std::cout << lit_id(_ass[i]) << " ";
+  }
+  std::cout << "\nTotal assumptions: " << _ass.size() << "\n";
 
   if (solve(_ass)) {
     if (verbose_) {
