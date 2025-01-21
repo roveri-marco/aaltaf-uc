@@ -6,7 +6,7 @@
             "type": "lldb",  // Changed back to "lldb"
             "request": "launch",
             "program": "${workspaceFolder}/aaltaf",
-            "args": ["-mus", "-f", "examples/p8.ltl"],
+            "args": ["-emus2", "-f", "examples/p8.ltl"],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build"
         }

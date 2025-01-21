@@ -94,11 +94,11 @@ std::vector<int> AaltaSolver::get_mus(const Minisat::vec<Minisat::Lit>& custom_e
     _ass.push(assumption_[i]);
   }
 
-  std::cout << "Testing assumptions:\n";
-  for (int i = 0; i < _ass.size(); i++) {
-    std::cout << lit_id(_ass[i]) << " ";
-  }
-  std::cout << "\nTotal assumptions: " << _ass.size() << "\n";
+  // std::cout << "Testing assumptions:\n";
+  // for (int i = 0; i < _ass.size(); i++) {
+  //   std::cout << lit_id(_ass[i]) << " ";
+  // }
+  // std::cout << "\nTotal assumptions: " << _ass.size() << "\n";
 
   if (solve(_ass)) {
     if (verbose_) {
@@ -126,6 +126,7 @@ std::vector<int> AaltaSolver::get_mus(const Minisat::vec<Minisat::Lit>& custom_e
     if (solve(_ass)) {
       mus_set.insert(lit_id(removed));
       _ass.push(removed);
+      // TODO: controllare le ass. interne e in caso rimuovere anche da lì quella esterna
       i++;
       if (verbose_) {
         std::cout << "Literal " << lit_id(removed) << " is part of the MUS\n";

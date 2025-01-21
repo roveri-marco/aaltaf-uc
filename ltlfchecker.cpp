@@ -279,8 +279,6 @@ void LTLfChecker::print_formulas_id(aalta_formula* f) {
 
 // p8.ltl: 9 (P0) 14 (P1)
 void LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas) {
-  // external_assumptions_ = get_external_assumptions(to_check_);
-
   std::vector<int> mus = solver_->get_mus({});
 
   if (!mus.empty()) {
@@ -288,57 +286,92 @@ void LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas) {
     print_mus(mus);
 
     bool_solver_ = new AaltaSolver(verbose_);
-    // initialize_bool_solver();
+
+    // Create variables for ext_assumption_ literals
+    for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
+      bool_solver_->newVar();
+    }
 
     block_up(mus);
 
     while (true) {
-      if (!bool_solver_->solve_assumption()) {
+      // Get boolean model
+      Minisat::vec<Minisat::Lit> bool_assumptions;
+      if (!bool_solver_->solve(bool_assumptions)) {
         break;
       }
 
-      std::vector<int> new_assumptions = get_model_assumptions();
-
-      CARChecker* new_checker = new CARChecker(to_check_, verbose_);
-      new_checker->add_assumptions(formulas);
-
-      Minisat::vec<Minisat::Lit> custom_assumptions;
-      for (int assumption : new_assumptions) {
-        custom_assumptions.push(new_checker->solver_->SAT_lit(assumption));
+      // Map boolean variables to original formulas
+      std::vector<aalta_formula*> subset_formulas;
+      for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
+        if (bool_solver_->model[i] == Minisat::lbool((uint8_t)0)) {  // l_True
+          int ext_lit = solver_->lit_id(solver_->ext_assumption_[i]);
+          subset_formulas.push_back(solver_->ext_assumption_map_[abs(ext_lit)]);
+        }
       }
 
+      // Create new checker with ONLY selected formulas
+      CARChecker* new_checker = new CARChecker(to_check_, verbose_);
+      new_checker->solver_->ext_assumption_.clear();  // Clear old assumptions
+      new_checker->add_assumptions(subset_formulas);  // Add only selected formulas
+
       if (!new_checker->check()) {
-        std::vector<int> new_mus = extract_single_mus(to_check_, new_assumptions);
+        // Get MUS from current assumptions
+        std::vector<int> new_mus = new_checker->solver_->get_mus({});
         if (!new_mus.empty()) {
           std::cout << "-- Additional MUS found: ";
           print_mus(new_mus);
           block_up(new_mus);
         }
       } else {
-        block_down(new_assumptions);
+        // Block this satisfying combination
+        std::vector<int> assumptions;
+        for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
+          if (bool_solver_->model[i] == Minisat::lbool((uint8_t)0)) {
+            assumptions.push_back(solver_->lit_id(solver_->ext_assumption_[i]));
+          }
+        }
+        block_down(assumptions);
       }
 
       delete new_checker;
-      break;
     }
 
     delete bool_solver_;
   }
 }
 
-std::vector<int> LTLfChecker::extract_single_mus(aalta_formula*          gamma,
-                                                 const std::vector<int>& new_assumptions) {
-  Minisat::vec<Minisat::Lit> custom_assumptions;
+bool LTLfChecker::block_up(const std::vector<int>& mus) {
+  std::vector<int> clause;
+  std::cout << "Blocking MUS: ";
 
-  for (int ext_ass : external_assumptions_) {
-    custom_assumptions.push(solver_->SAT_lit(ext_ass));
+  // Map MUS literals to boolean variables
+  for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
+    int ext_lit = solver_->lit_id(solver_->ext_assumption_[i]);
+    if (std::find(mus.begin(), mus.end(), ext_lit) != mus.end()) {
+      clause.push_back(-(i + 1));  // Boolean variable
+      std::cout << ext_lit << " ";
+    }
+  }
+  std::cout << std::endl;
+
+  bool_solver_->add_clause(clause);
+  return true;
+}
+
+bool LTLfChecker::block_down(const std::vector<int>& assumptions) {
+  std::vector<int> clause;
+
+  // Add complement literals for assumptions
+  for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
+    int ext_lit = solver_->lit_id(solver_->ext_assumption_[i]);
+    if (std::find(assumptions.begin(), assumptions.end(), ext_lit) == assumptions.end()) {
+      clause.push_back(i + 1);  // Boolean variable
+    }
   }
 
-  for (int new_ass : new_assumptions) {
-    custom_assumptions.push(solver_->SAT_lit(new_ass));
-  }
-
-  return solver_->get_mus(custom_assumptions);
+  bool_solver_->add_clause(clause);
+  return true;
 }
 
 void LTLfChecker::print_mus(const std::vector<int>& mus) {
@@ -351,81 +384,5 @@ void LTLfChecker::print_mus(const std::vector<int>& mus) {
     }
   }
   cout << endl;
-}
-
-bool LTLfChecker::block_up(const std::vector<int>& mus) {
-  // Add clause ¬a1 ∨ ¬a2 ∨ ... ∨ ¬an where ai are literals in MUS
-  std::vector<int> clause;
-  for (int lit : mus) {
-    clause.push_back(-lit);  // Negate each literal
-  }
-  bool_solver_->add_clause(clause);
-  return true;
-}
-
-bool LTLfChecker::block_down(const std::vector<int>& assumptions) {
-  // Add clause for variables not in assumptions
-  std::vector<int> clause;
-  std::vector<int> all_vars = get_all_assumption_vars();
-
-  for (int var : all_vars) {
-    if (std::find(assumptions.begin(), assumptions.end(), var) == assumptions.end()) {
-      clause.push_back(var);
-    }
-  }
-
-  bool_solver_->add_clause(clause);
-  return true;
-}
-
-std::vector<int> LTLfChecker::get_model_assumptions() {
-  std::vector<int> model = bool_solver_->get_model();
-  std::vector<int> assumptions;
-
-  // Only include variables assigned true
-  for (int i = 0; i < model.size(); i++) {
-    if (model[i] > 0) {
-      assumptions.push_back(i + 1);
-    }
-  }
-
-  // Set indifferent variables to true
-  std::vector<int> all_vars = get_all_assumption_vars();
-  for (int var : all_vars) {
-    if (std::find(model.begin(), model.end(), var) == model.end()
-        && std::find(model.begin(), model.end(), -var) == model.end()) {
-      assumptions.push_back(var);
-    }
-  }
-
-  return assumptions;
-}
-
-void LTLfChecker::initialize_bool_solver(const std::vector<int>& ext_assumptions) {
-  // Initialize boolean solver with variables for each assumption
-  for (int i = 0; i < ext_assumptions.size(); i++) {
-    bool_solver_->newVar();
-  }
-}
-
-std::vector<int> LTLfChecker::get_external_assumptions(aalta_formula* gamma) {
-  std::vector<int>          assumptions;
-  aalta_formula::af_prt_set ands = gamma->to_set();
-
-  for (aalta_formula::af_prt_set::iterator it = ands.begin(); it != ands.end(); ++it) {
-    assumptions.push_back(solver_->SAT_id(*it));
-  }
-
-  return assumptions;
-}
-
-std::vector<int> LTLfChecker::get_all_assumption_vars() {
-  std::vector<int> vars;
-  if (bool_solver_) {
-    for (int i = 0; i < bool_solver_->ext_assumption_.size(); i++) {
-      vars.push_back(bool_solver_->lit_id(bool_solver_->ext_assumption_[i]));
-    }
-  }
-  return vars;
 }
 }  // namespace aalta

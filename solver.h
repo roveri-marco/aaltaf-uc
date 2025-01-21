@@ -54,6 +54,10 @@ namespace aalta
     // add clause to block the CONJUNCTIVE formula f
     void block_formula(aalta_formula *f);
 
+    // To maintain mapping of SAT lit to corresponding formula
+    typedef hash_map<int, aalta_formula *> formula_map;
+    formula_map ext_assumption_map_;
+
     // add clause to block set of explored states from UC.
     void block_uc();
 
@@ -92,7 +96,6 @@ namespace aalta
     typedef hash_map<int, int> x_map;
     x_map X_map_; // if (1, 2) is in X_map_, that means 2 = X 1;
     x_map N_map_; // if (1, 2) is in N_map_, that means 2 = N 1;
-    typedef hash_map<int, aalta_formula *> formula_map;
     // if (1, a) is in formula_map_, that means SAT_id (a) == 1
     // we need to store literals (including atoms), Next (WNext), Until, Release and Or
     formula_map formula_map_;
@@ -101,9 +104,6 @@ namespace aalta
 
     typedef hash_map<int, std::vector<int>> coi_map;
     coi_map coi_map_; // if (1, v) is in coi_map_, that means coi (1) = v;
-
-    // To maintain mapping of SAT lit to corresponding formula
-    formula_map ext_assumption_map_;
 
     /////flags
     // bool verbose_;  //default is false
