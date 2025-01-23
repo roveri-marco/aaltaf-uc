@@ -110,7 +110,12 @@ void ltlf_sat(int argc, char** argv) {
   af = aalta_formula::TAIL();
 
   if (emus2) {
+    t0 = chrono::high_resolution_clock::now();
     get_formulas(file, names, formulas, af);
+    t1 = chrono::high_resolution_clock::now();
+    cout << "-- Parsing of the file time: "
+         << to_string(chrono::duration_cast<chrono::nanoseconds>(t1 - t0).count() / 1e9) << endl;
+
     if (file != stdin)
       fclose(file);
 
@@ -120,10 +125,29 @@ void ltlf_sat(int argc, char** argv) {
     af = af->simplify();
     af = af->split_next();
 
+    t2 = chrono::high_resolution_clock::now();
+    cout << "-- Preprocessing time: "
+         << to_string(chrono::duration_cast<chrono::nanoseconds>(t2 - t1).count() / 1e9) << endl;
+
     CARChecker checker(af, verbose, evidence);
+    t3 = chrono::high_resolution_clock::now();
     checker.add_assumptions(names);
-    if (!checker.check())
-      checker.enumerate_all_mus_v2(names);
+
+    double first_checker_creation =
+        chrono::duration_cast<chrono::nanoseconds>(t3 - t2).count() / 1e9;
+
+    if (!checker.check()) {
+      t4 = chrono::high_resolution_clock::now();
+      double first_checker_check =
+          chrono::duration_cast<chrono::nanoseconds>(t4 - t3).count() / 1e9;
+
+      std::vector<MUSInfo> all_mus =
+          checker.enumerate_all_mus_v2(names, first_checker_creation, first_checker_check);
+
+      t5 = chrono::high_resolution_clock::now();
+      cout << "-- Enumeration of mus time: "
+           << to_string(chrono::duration_cast<chrono::nanoseconds>(t5 - t4).count() / 1e9) << endl;
+    }
     return;
   }
 

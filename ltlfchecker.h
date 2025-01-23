@@ -20,6 +20,18 @@
 #include "solver.h"
 
 namespace aalta {
+
+struct MUSInfo {
+    std::vector<int> mus;
+    double checker_creation_time;
+    double checker_check_time;
+    double mus_extraction_time; 
+    
+    MUSInfo(const std::vector<int>& m, double create_time, double check_time, double extract_time) 
+        : mus(m), checker_creation_time(create_time), checker_check_time(check_time), 
+          mus_extraction_time(extract_time) {}
+};
+
 class AaltaSolver;
 class LTLfChecker {
 public:
@@ -44,14 +56,16 @@ public:
     if (evidence_ != NULL)
       delete evidence_;
   }
-  bool         check();
-  void         print_evidence();
-  void         print_uc();
-  unsigned int get_uc_size();
-  void         print_mus();
-  void         print_all_mus();
-  unsigned int get_mus_size();
-  void         enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas);
+  bool                 check();
+  void                 print_evidence();
+  void                 print_uc();
+  unsigned int         get_uc_size();
+  void                 print_mus();
+  void                 print_all_mus();
+  unsigned int         get_mus_size();
+  std::vector<MUSInfo> enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas,
+                                            double                       first_creation_time,
+                                            double                       first_check_time);
 
 protected:
   // flags
