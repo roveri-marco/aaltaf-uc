@@ -272,9 +272,6 @@
    }
 
    bool Solver::add_assumptions(std::vector<aalta_formula *> & ass) {
-    // ext_assumption_.clear();
-    // ext_assumption_map_.clear();
-
      for (std::vector<aalta_formula *>::iterator it = ass.begin();
 	  it!= ass.end (); it ++) {
        if ((*it) == NULL)
@@ -286,18 +283,6 @@
 
      return true;
    }
-
-   bool Solver::solve(const Minisat::vec<Minisat::Lit>& assumptions) 
-{
-    Minisat::vec<Minisat::Lit> _ass;
-    assumptions.copyTo(_ass);
-    lbool ret = solveLimited(_ass);
-    if (ret == l_True)
-        return true;
-    else if (ret == l_Undef)
-        exit(0);
-    return false;
-}
 
    //check whether the formula \@ f can be the last state (tail)
    bool Solver::check_tail (aalta_formula *f)

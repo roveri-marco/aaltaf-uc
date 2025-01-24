@@ -438,4 +438,42 @@ void LTLfChecker::print_mus(const std::vector<int>& mus) {
   }
   cout << endl;
 }
+
+std::vector<int> LTLfChecker::get_temporal_mus() {
+    std::vector<int> current_mus = solver_->get_mus({});
+    
+    if (current_mus.empty()) {
+        return current_mus;
+    }
+
+    for (size_t i = 0; i < current_mus.size();) {
+        int current = current_mus[i];
+
+        cout << "asddasd" << endl;
+        
+        CARChecker* temp_checker = new CARChecker(to_check_, verbose_);
+        
+        // Add all formulas except the one we're testing
+        for (int id : current_mus) {
+            if (id != current) {
+                aalta_formula* f = solver_->get_ass_formula(abs(id));
+                if (f != NULL) {
+                    std::vector<aalta_formula*> single_formula = {f};
+                    temp_checker->add_assumptions(single_formula);
+                }
+            }
+        }
+        
+        bool is_sat = temp_checker->check();
+        delete temp_checker;
+        
+        if (is_sat) {
+            i++;
+        } else {
+            current_mus.erase(current_mus.begin() + i);
+        }
+    }
+    
+    return current_mus;
+}
 }  // namespace aalta

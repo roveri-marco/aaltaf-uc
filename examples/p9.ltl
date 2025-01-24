@@ -1,3 +1,4 @@
 P0 := F x;
-P1 := G (y -> X y);
+P1 := G (y -> X !y);
 P2 := F z && G !z;
+P3 := G y;

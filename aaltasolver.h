@@ -6,72 +6,77 @@
  */
 
 #ifndef AALTA_SOLVER_H
-#define	AALTA_SOLVER_H
+#define AALTA_SOLVER_H
+
+#include <set>
+#include <vector>
 
 #include "minisat/core/Solver.h"
-#include <vector>
-#include <set>
 
-namespace aalta
-{
-  class AaltaSolver : public Minisat::Solver
-  {
-  public:
-    AaltaSolver () {}
-    AaltaSolver (bool verbose) : verbose_ (verbose) {}
-    bool verbose_;
-
-    Minisat::vec<Minisat::Lit> assumption_;  //Assumption for SAT solver
-    Minisat::vec<Minisat::Lit> ext_assumption_; // External assumptions for SAT solver
-
-    //functions
-    bool solve_assumption ();
-    std::vector<int> get_model ();    //get the model from SAT solver
-    std::vector<int> get_uc ();       //get UC from SAT solver
-    std::vector<int> get_mus(const Minisat::vec<Minisat::Lit>& custom_ext_assumption = Minisat::vec<Minisat::Lit>());     //get MUS (minimal unsatisfiable subset) from SAT solver
-    std::vector<std::vector<int>> enumerate_all_mus();
-
-    void add_clause (int);
-    void add_clause (int, int);
-    void add_clause (int, int, int);
-    void add_clause (int, int, int, int);
-    void add_clause (std::vector<int>&);
-    bool contains(const std::vector<std::vector<int>>& all_mus, const std::vector<int>& mus);
-    bool is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2);
-    int litVectorToHash(const Minisat::vec<Minisat::Lit>& v);
-    void exploreLiteralCombinations(Minisat::vec<Minisat::Lit>& lits, int index, Minisat::vec<Minisat::Lit>& current, std::set<int>& generated, std::vector<std::vector<int>>& all_mus);
-    void processPermutations(Minisat::vec<Minisat::Lit>& combination, int start, int end, std::vector<std::vector<int>>& all_mus);
-    Minisat::Lit SAT_lit (int id); //create the Lit used in SAT solver for the id.
-    int lit_id (Minisat::Lit);  //return the id of SAT lit
+namespace aalta {
+class AaltaSolver : public Minisat::Solver {
+public:
+  AaltaSolver() {}
+  AaltaSolver(bool verbose) : verbose_(verbose) {}
+  bool verbose_;
 
 
-    //printers
-    void print_clauses ();
+  Minisat::vec<Minisat::Lit> assumption_;      // Assumption for SAT solver
+  Minisat::vec<Minisat::Lit> ext_assumption_;  // External assumptions for SAT solver
 
-    //l <-> r
-    inline void add_equivalence (int l, int r)
-    {
-      add_clause (-l, r);
-      add_clause (l, -r);
-    }
+  // functions
+  bool             solve_assumption();
+  std::vector<int> get_model();  // get the model from SAT solver
+  std::vector<int> get_uc();     // get UC from SAT solver
+  std::vector<int> get_mus(
+      const Minisat::vec<Minisat::Lit>& custom_ext_assumption =
+          Minisat::vec<Minisat::Lit>());  // get MUS (minimal unsatisfiable subset) from SAT solver
+  std::vector<std::vector<int>> enumerate_all_mus();
 
-    //l <-> r1 /\ r2
-    inline void add_equivalence (int l, int r1, int r2)
-    {
-      add_clause (-l, r1);
-      add_clause (-l, r2);
-      add_clause (l, -r1, -r2);
-    }
+  void         add_clause(int);
+  void         add_clause(int, int);
+  void         add_clause(int, int, int);
+  void         add_clause(int, int, int, int);
+  void         add_clause(std::vector<int>&);
+  bool         contains(const std::vector<std::vector<int>>& all_mus, const std::vector<int>& mus);
+  bool         is_equal_set(const std::vector<int>& set1, const std::vector<int>& set2);
+  int          litVectorToHash(const Minisat::vec<Minisat::Lit>& v);
+  void         exploreLiteralCombinations(Minisat::vec<Minisat::Lit>&    lits,
+                                          int                            index,
+                                          Minisat::vec<Minisat::Lit>&    current,
+                                          std::set<int>&                 generated,
+                                          std::vector<std::vector<int>>& all_mus);
+  void         processPermutations(Minisat::vec<Minisat::Lit>&    combination,
+                                   int                            start,
+                                   int                            end,
+                                   std::vector<std::vector<int>>& all_mus);
+  Minisat::Lit SAT_lit(int id);       // create the Lit used in SAT solver for the id.
+  int          lit_id(Minisat::Lit);  // return the id of SAT lit
 
-    //l<-> r1 /\ r2 /\ r3
-    inline void add_equivalence (int l, int r1, int r2, int r3)
-    {
-      add_clause (-l, r1);
-      add_clause (-l, r2);
-      add_clause (-l, r3);
-      add_clause (l, -r1, -r2, -r3);
-    }
-  };
-}
+  // printers
+  void print_clauses();
+
+  // l <-> r
+  inline void add_equivalence(int l, int r) {
+    add_clause(-l, r);
+    add_clause(l, -r);
+  }
+
+  // l <-> r1 /\ r2
+  inline void add_equivalence(int l, int r1, int r2) {
+    add_clause(-l, r1);
+    add_clause(-l, r2);
+    add_clause(l, -r1, -r2);
+  }
+
+  // l<-> r1 /\ r2 /\ r3
+  inline void add_equivalence(int l, int r1, int r2, int r3) {
+    add_clause(-l, r1);
+    add_clause(-l, r2);
+    add_clause(-l, r3);
+    add_clause(l, -r1, -r2, -r3);
+  }
+};
+}  // namespace aalta
 
 #endif
