@@ -278,29 +278,30 @@ void LTLfChecker::print_formulas_id(aalta_formula* f) {
   print_formulas_id(f->r_af());
 }
 
-// p8.ltl: 9 (P0) 14 (P1)
 std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas,
                                                        double first_creation_time,
                                                        double first_check_time) {
-  std::vector<MUSInfo> all_mus;
-  
-  auto t_mus_start = std::chrono::high_resolution_clock::now();
-  std::vector<int> mus = solver_->get_mus({});
-  auto t_mus_end = std::chrono::high_resolution_clock::now();
-  double first_mus_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
-      t_mus_end - t_mus_start).count() / 1e9;
+    std::vector<MUSInfo> all_mus;
+    
+    auto t_mus_start = std::chrono::high_resolution_clock::now();
+    std::vector<std::vector<int>> initial_muses = get_temporal_mus();
+    auto t_mus_end = std::chrono::high_resolution_clock::now();
+    double first_mus_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        t_mus_end - t_mus_start).count() / 1e9;
 
-  if (!mus.empty()) {
-    all_mus.emplace_back(mus, first_creation_time, first_check_time, first_mus_time);
+    if (!initial_muses.empty()) {
+        bool_solver_ = new AaltaSolver(verbose_);
 
-    bool_solver_ = new AaltaSolver(verbose_);
+        // Create variables for ext_assumption_ literals
+        for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
+            bool_solver_->newVar();
+        }
 
-    // Create variables for ext_assumption_ literals
-    for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
-      bool_solver_->newVar();
-    }
-
-    block_up(mus);
+        // Add all initial MUSes
+        for (const auto& mus : initial_muses) {
+            all_mus.emplace_back(mus, first_creation_time, first_check_time, first_mus_time);
+            block_up(mus);
+        }
 
     while (true) {
       // Get boolean model
@@ -439,41 +440,57 @@ void LTLfChecker::print_mus(const std::vector<int>& mus) {
   cout << endl;
 }
 
-std::vector<int> LTLfChecker::get_temporal_mus() {
+std::vector<std::vector<int>> LTLfChecker::get_temporal_mus() {
+    std::vector<std::vector<int>> min_muses;
     std::vector<int> current_mus = solver_->get_mus({});
     
     if (current_mus.empty()) {
-        return current_mus;
+        return min_muses;
     }
 
+    min_muses.push_back(current_mus);
+    size_t min_size = current_mus.size();
+
+    // Now minimize and collect all MUSes of minimal size
     for (size_t i = 0; i < current_mus.size();) {
         int current = current_mus[i];
-
-        cout << "asddasd" << endl;
         
         CARChecker* temp_checker = new CARChecker(to_check_, verbose_);
+        std::vector<aalta_formula*> subset_formulas;
         
         // Add all formulas except the one we're testing
         for (int id : current_mus) {
             if (id != current) {
                 aalta_formula* f = solver_->get_ass_formula(abs(id));
                 if (f != NULL) {
-                    std::vector<aalta_formula*> single_formula = {f};
-                    temp_checker->add_assumptions(single_formula);
+                    subset_formulas.push_back(f);
                 }
             }
         }
         
+        temp_checker->add_assumptions(subset_formulas);
         bool is_sat = temp_checker->check();
         delete temp_checker;
         
         if (is_sat) {
+            // If satisfiable when removed, this formula is needed
             i++;
         } else {
+            // Found a smaller MUS
             current_mus.erase(current_mus.begin() + i);
+            
+            if (current_mus.size() < min_size) {
+                // Found a strictly smaller MUS, clear previous ones
+                min_size = current_mus.size();
+                min_muses.clear();
+                min_muses.push_back(current_mus);
+            } else if (current_mus.size() == min_size) {
+                // Found another MUS of minimal size
+                min_muses.push_back(current_mus);
+            }
         }
     }
     
-    return current_mus;
+    return min_muses;
 }
 }  // namespace aalta

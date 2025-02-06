@@ -68,7 +68,7 @@ public:
   std::vector<MUSInfo> enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas,
                                             double                       first_creation_time,
                                             double                       first_check_time);
-  std::vector<int>     get_temporal_mus();
+  std::vector<std::vector<int>> get_temporal_mus();
 
 protected:
   // flags
