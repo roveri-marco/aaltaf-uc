@@ -26,12 +26,21 @@ struct MUSInfo {
   double           checker_creation_time;
   double           checker_check_time;
   double           mus_extraction_time;
+  int              bool_solver_calls;       // Number of boolean solver calls for this MUS
+  int              ltlf_checker_creations;  // Number of LTLf checker creations for this MUS
 
-  MUSInfo(const std::vector<int>& m, double create_time, double check_time, double extract_time)
+  MUSInfo(const std::vector<int>& m,
+          double                  create_time,
+          double                  check_time,
+          double                  extract_time,
+          int                     bool_calls     = 0,
+          int                     ltlf_creations = 0)
       : mus(m),
         checker_creation_time(create_time),
         checker_check_time(check_time),
-        mus_extraction_time(extract_time) {}
+        mus_extraction_time(extract_time),
+        bool_solver_calls(bool_calls),
+        ltlf_checker_creations(ltlf_creations) {}
 };
 
 class AaltaSolver;
@@ -58,17 +67,17 @@ public:
     if (evidence_ != NULL)
       delete evidence_;
   }
-  bool                 check();
-  void                 print_evidence();
-  void                 print_uc();
-  unsigned int         get_uc_size();
-  void                 print_mus();
-  void                 print_all_mus();
-  unsigned int         get_mus_size();
-  std::vector<MUSInfo> enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas,
-                                            double                       first_creation_time,
-                                            double                       first_check_time);
-  std::vector<std::vector<int>> get_temporal_mus();
+  bool                          check();
+  void                          print_evidence();
+  void                          print_uc();
+  unsigned int                  get_uc_size();
+  void                          print_mus();
+  void                          print_all_mus();
+  unsigned int                  get_mus_size();
+  std::vector<MUSInfo>          enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas,
+                                                     double                       first_creation_time,
+                                                     double                       first_check_time);
+  std::vector<std::vector<int>> get_temporal_mus(int& ltlf_checker_count);
 
 protected:
   // flags

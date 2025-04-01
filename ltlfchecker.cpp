@@ -281,31 +281,50 @@ void LTLfChecker::print_formulas_id(aalta_formula* f) {
 std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula*>& formulas,
                                                        double first_creation_time,
                                                        double first_check_time) {
-    std::vector<MUSInfo> all_mus;
-    
-    auto t_mus_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::vector<int>> initial_muses = get_temporal_mus();
-    auto t_mus_end = std::chrono::high_resolution_clock::now();
-    double first_mus_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        t_mus_end - t_mus_start).count() / 1e9;
+  std::vector<MUSInfo> all_mus;
 
-    if (!initial_muses.empty()) {
-        bool_solver_ = new AaltaSolver(verbose_);
+  int total_bool_solver_calls      = 0;
+  int total_ltlf_checker_creations = 0;
 
-        // Create variables for ext_assumption_ literals
-        for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
-            bool_solver_->newVar();
-        }
+  int temporal_mus_ltlf_creations = 0;
 
-        // Add all initial MUSes
-        for (const auto& mus : initial_muses) {
-            all_mus.emplace_back(mus, first_creation_time, first_check_time, first_mus_time);
-            block_up(mus);
-        }
+  auto                          t_mus_start   = std::chrono::high_resolution_clock::now();
+  std::vector<std::vector<int>> initial_muses = get_temporal_mus(temporal_mus_ltlf_creations);
+  auto                          t_mus_end     = std::chrono::high_resolution_clock::now();
+  double                        first_mus_time =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(t_mus_end - t_mus_start).count() / 1e9;
+
+  if (!initial_muses.empty()) {
+    total_ltlf_checker_creations += temporal_mus_ltlf_creations;
+
+    bool_solver_ = new AaltaSolver(verbose_);
+
+    // Create variables for ext_assumption_ literals
+    for (int i = 0; i < solver_->ext_assumption_.size(); i++) {
+      bool_solver_->newVar();
+    }
+
+    // Add all initial MUSes
+    for (const auto& mus : initial_muses) {
+      all_mus.emplace_back(mus,
+                           first_creation_time,
+                           first_check_time,
+                           first_mus_time,
+                           0,
+                           temporal_mus_ltlf_creations);
+      block_up(mus);
+    }
+
+    int current_bool_calls     = 0;
+    int current_ltlf_creations = 0;
 
     while (true) {
       // Get boolean model
       Minisat::vec<Minisat::Lit> bool_assumptions;
+
+      current_bool_calls++;
+      total_bool_solver_calls++;
+
       if (!bool_solver_->solve(bool_assumptions)) {
         break;
       }
@@ -322,6 +341,10 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
       auto t_checker_start = std::chrono::high_resolution_clock::now();
       // Create new checker with ONLY selected formulas
       CARChecker* new_checker = new CARChecker(to_check_, verbose_);
+
+      current_ltlf_creations++;
+      total_ltlf_checker_creations++;
+
       new_checker->solver_->ext_assumption_.clear();
       new_checker->add_assumptions(subset_formulas);
 
@@ -339,16 +362,25 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
 
       if (is_unsat) {
         // Get MUS from current assumptions
-        auto t_mus_extract_start = std::chrono::high_resolution_clock::now();
-        std::vector<int> new_mus = new_checker->solver_->get_mus({});
-        auto t_mus_extract_end = std::chrono::high_resolution_clock::now();
-        double mus_extraction_time = 
-            std::chrono::duration_cast<std::chrono::nanoseconds>(
-                t_mus_extract_end - t_mus_extract_start).count() / 1e9;
-            
+        auto             t_mus_extract_start = std::chrono::high_resolution_clock::now();
+        std::vector<int> new_mus             = new_checker->solver_->get_mus({});
+        auto             t_mus_extract_end   = std::chrono::high_resolution_clock::now();
+        double           mus_extraction_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                         t_mus_extract_end - t_mus_extract_start)
+                                         .count()
+                                     / 1e9;
+
         if (!new_mus.empty()) {
           block_up(new_mus);
-          all_mus.emplace_back(new_mus, checker_creation_time, check_time, mus_extraction_time);
+          all_mus.emplace_back(new_mus,
+                               checker_creation_time,
+                               check_time,
+                               mus_extraction_time,
+                               current_bool_calls,
+                               current_ltlf_creations);
+
+          current_bool_calls     = 0;
+          current_ltlf_creations = 0;
         }
       } else {
         // Block this satisfying combination
@@ -367,12 +399,13 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
     delete bool_solver_;
 
     cout << "\n====== MUSes Summary ======\n";
-    cout << "MUS #\tChecker Creation(s)\tCheck Time(s)\t\tMUS Extraction(s)\tMUS Content\n";
+    cout << "MUS #\tChecker Creation(s)\tCheck Time(s)\t\tMUS Extraction(s)\tBool Calls\tLTLf "
+            "Creations\tMUS Content\n";
     for (size_t i = 0; i < all_mus.size(); i++) {
-      cout << left << setw(8) << (i + 1) 
-           << setw(24) << fixed << setprecision(6) << all_mus[i].checker_creation_time 
-           << setw(24) << all_mus[i].checker_check_time
-           << setw(24) << all_mus[i].mus_extraction_time;
+      cout << left << setw(8) << (i + 1) << setw(24) << fixed << setprecision(6)
+           << all_mus[i].checker_creation_time << setw(24) << all_mus[i].checker_check_time
+           << setw(24) << all_mus[i].mus_extraction_time << setw(16) << all_mus[i].bool_solver_calls
+           << setw(16) << all_mus[i].ltlf_checker_creations;
 
       for (size_t j = 0; j < all_mus[i].mus.size(); j++) {
         aalta_formula* f = solver_->get_ass_formula(abs(all_mus[i].mus[j]));
@@ -386,6 +419,11 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
       }
       cout << "\n";
     }
+    cout << endl;
+
+    cout << "\n====== Total Statistics ======\n";
+    cout << "Total Boolean Solver Calls: " << total_bool_solver_calls << "\n";
+    cout << "Total LTLf Checker Creations: " << total_ltlf_checker_creations << "\n";
     cout << endl;
   }
 
@@ -440,57 +478,59 @@ void LTLfChecker::print_mus(const std::vector<int>& mus) {
   cout << endl;
 }
 
-std::vector<std::vector<int>> LTLfChecker::get_temporal_mus() {
-    std::vector<std::vector<int>> min_muses;
-    std::vector<int> current_mus = solver_->get_mus({});
-    
-    if (current_mus.empty()) {
-        return min_muses;
-    }
+std::vector<std::vector<int>> LTLfChecker::get_temporal_mus(int& ltlf_checker_count) {
+  ltlf_checker_count = 0;
+  std::vector<std::vector<int>> min_muses;
+  std::vector<int>              current_mus = solver_->get_mus({});
 
-    min_muses.push_back(current_mus);
-    size_t min_size = current_mus.size();
-
-    // Now minimize and collect all MUSes of minimal size
-    for (size_t i = 0; i < current_mus.size();) {
-        int current = current_mus[i];
-        
-        CARChecker* temp_checker = new CARChecker(to_check_, verbose_);
-        std::vector<aalta_formula*> subset_formulas;
-        
-        // Add all formulas except the one we're testing
-        for (int id : current_mus) {
-            if (id != current) {
-                aalta_formula* f = solver_->get_ass_formula(abs(id));
-                if (f != NULL) {
-                    subset_formulas.push_back(f);
-                }
-            }
-        }
-        
-        temp_checker->add_assumptions(subset_formulas);
-        bool is_sat = temp_checker->check();
-        delete temp_checker;
-        
-        if (is_sat) {
-            // If satisfiable when removed, this formula is needed
-            i++;
-        } else {
-            // Found a smaller MUS
-            current_mus.erase(current_mus.begin() + i);
-            
-            if (current_mus.size() < min_size) {
-                // Found a strictly smaller MUS, clear previous ones
-                min_size = current_mus.size();
-                min_muses.clear();
-                min_muses.push_back(current_mus);
-            } else if (current_mus.size() == min_size) {
-                // Found another MUS of minimal size
-                min_muses.push_back(current_mus);
-            }
-        }
-    }
-    
+  if (current_mus.empty()) {
     return min_muses;
+  }
+
+  min_muses.push_back(current_mus);
+  size_t min_size = current_mus.size();
+
+  // Now minimize and collect all MUSes of minimal size
+  for (size_t i = 0; i < current_mus.size();) {
+    int current = current_mus[i];
+
+    CARChecker* temp_checker = new CARChecker(to_check_, verbose_);
+    ltlf_checker_count++;
+    std::vector<aalta_formula*> subset_formulas;
+
+    // Add all formulas except the one we're testing
+    for (int id : current_mus) {
+      if (id != current) {
+        aalta_formula* f = solver_->get_ass_formula(abs(id));
+        if (f != NULL) {
+          subset_formulas.push_back(f);
+        }
+      }
+    }
+
+    temp_checker->add_assumptions(subset_formulas);
+    bool is_sat = temp_checker->check();
+    delete temp_checker;
+
+    if (is_sat) {
+      // If satisfiable when removed, this formula is needed
+      i++;
+    } else {
+      // Found a smaller MUS
+      current_mus.erase(current_mus.begin() + i);
+
+      if (current_mus.size() < min_size) {
+        // Found a strictly smaller MUS, clear previous ones
+        min_size = current_mus.size();
+        min_muses.clear();
+        min_muses.push_back(current_mus);
+      } else if (current_mus.size() == min_size) {
+        // Found another MUS of minimal size
+        min_muses.push_back(current_mus);
+      }
+    }
+  }
+
+  return min_muses;
 }
 }  // namespace aalta
