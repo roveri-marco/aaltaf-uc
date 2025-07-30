@@ -7,9 +7,11 @@
 
 #include "ltlfchecker.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <set>
+#include <tuple>
 #include <vector>
 
 #include "aaltasolver.h"
@@ -424,6 +426,74 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
     cout << "\n====== Total Statistics ======\n";
     cout << "Total Boolean Solver Calls: " << total_bool_solver_calls << "\n";
     cout << "Total LTLf Checker Creations: " << total_ltlf_checker_creations << "\n";
+
+    if (!all_mus.empty()) {
+      std::vector<int> mus_sizes;
+      for (const auto& mus_info : all_mus) {
+        mus_sizes.push_back(mus_info.mus.size());
+      }
+      
+      int min_size = *std::min_element(mus_sizes.begin(), mus_sizes.end());
+      int max_size = *std::max_element(mus_sizes.begin(), mus_sizes.end());
+      double mean_size = 0.0;
+      for (int size : mus_sizes) mean_size += size;
+      mean_size /= mus_sizes.size();
+      
+      double variance_size = 0.0;
+      for (int size : mus_sizes) {
+        variance_size += (size - mean_size) * (size - mean_size);
+      }
+      variance_size /= mus_sizes.size();
+
+      cout << "\n====== MUS Size Statistics ======\n";
+      cout << "Count: " << all_mus.size() << "\n";
+      cout << "Min Size: " << min_size << "\n";
+      cout << "Max Size: " << max_size << "\n";
+      cout << "Mean Size: " << fixed << setprecision(2) << mean_size << "\n";
+      cout << "Variance: " << fixed << setprecision(4) << variance_size << "\n";
+
+      // Calculate timing statistics
+      std::vector<double> creation_times, check_times, extraction_times;
+      for (const auto& mus_info : all_mus) {
+        creation_times.push_back(mus_info.checker_creation_time);
+        check_times.push_back(mus_info.checker_check_time);
+        extraction_times.push_back(mus_info.mus_extraction_time);
+      }
+
+      auto calc_stats = [](const std::vector<double>& times) {
+        double min_t = *std::min_element(times.begin(), times.end());
+        double max_t = *std::max_element(times.begin(), times.end());
+        double mean_t = 0.0;
+        for (double t : times) mean_t += t;
+        mean_t /= times.size();
+        double variance_t = 0.0;
+        for (double t : times) variance_t += (t - mean_t) * (t - mean_t);
+        variance_t /= times.size();
+        return std::make_tuple(min_t, max_t, mean_t, variance_t);
+      };
+
+      auto create_stats = calc_stats(creation_times);
+      auto check_stats = calc_stats(check_times);
+      auto extract_stats = calc_stats(extraction_times);
+      
+      double min_create = std::get<0>(create_stats), max_create = std::get<1>(create_stats);
+      double mean_create = std::get<2>(create_stats), var_create = std::get<3>(create_stats);
+      double min_check = std::get<0>(check_stats), max_check = std::get<1>(check_stats);
+      double mean_check = std::get<2>(check_stats), var_check = std::get<3>(check_stats);
+      double min_extract = std::get<0>(extract_stats), max_extract = std::get<1>(extract_stats);
+      double mean_extract = std::get<2>(extract_stats), var_extract = std::get<3>(extract_stats);
+
+      cout << "\n====== Timing Statistics ======\n";
+      cout << "Checker Creation Times (s):\n";
+      cout << "  Min: " << fixed << setprecision(6) << min_create << "  Max: " << max_create 
+           << "  Mean: " << mean_create << "  Variance: " << scientific << setprecision(3) << var_create << "\n";
+      cout << "Check Times (s):\n";
+      cout << "  Min: " << fixed << setprecision(6) << min_check << "  Max: " << max_check 
+           << "  Mean: " << mean_check << "  Variance: " << scientific << setprecision(3) << var_check << "\n";
+      cout << "MUS Extraction Times (s):\n";
+      cout << "  Min: " << fixed << setprecision(6) << min_extract << "  Max: " << max_extract 
+           << "  Mean: " << mean_extract << "  Variance: " << scientific << setprecision(3) << var_extract << "\n";
+    }
     cout << endl;
   }
 

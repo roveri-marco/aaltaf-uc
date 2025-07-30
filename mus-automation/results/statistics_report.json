@@ -1,0 +1,299 @@
+{
+  "meta": {
+    "analysis_timestamp": "2025-07-30T19:31:06.351942",
+    "source_file": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/mus-automation/config/../results/mus-analysis-results.json",
+    "total_tests": 15,
+    "successful_tests": 15
+  },
+  "execution_statistics": {
+    "total_execution_time": 0.021022000000000002,
+    "mean_execution_time": 0.0014014666666666666,
+    "median_execution_time": 0.000697,
+    "successful_mean_time": 0.0014014666666666666,
+    "min_time": 0,
+    "max_time": 0.004528,
+    "std_dev_time": 0.0016343545194473857
+  },
+  "mus_statistics": {
+    "mus_counts": {
+      "min": 1,
+      "max": 6,
+      "mean": 2.3846153846153846,
+      "median": 2,
+      "std_dev": 1.8045526471705546,
+      "distribution": {
+        "1": {
+          "count": 6,
+          "percentage": 46.15384615384615
+        },
+        "2": {
+          "count": 3,
+          "percentage": 23.076923076923077
+        },
+        "3": {
+          "count": 1,
+          "percentage": 7.6923076923076925
+        },
+        "5": {
+          "count": 2,
+          "percentage": 15.384615384615385
+        },
+        "6": {
+          "count": 1,
+          "percentage": 7.6923076923076925
+        }
+      }
+    },
+    "mus_sizes": {
+      "min": 1,
+      "max": 3,
+      "mean": 1.967741935483871,
+      "median": 2,
+      "std_dev": 0.4069292295344024,
+      "distribution": {
+        "1": {
+          "count": 3,
+          "percentage": 9.67741935483871
+        },
+        "2": {
+          "count": 26,
+          "percentage": 83.87096774193549
+        },
+        "3": {
+          "count": 2,
+          "percentage": 6.451612903225806
+        }
+      }
+    },
+    "checker_creation_times": {
+      "min": 2.2e-05,
+      "max": 0.000133,
+      "mean": 6.290322580645161e-05,
+      "median": 6.4e-05,
+      "std_dev": 2.58564690019212e-05
+    },
+    "check_times": {
+      "min": 2.9e-05,
+      "max": 0.000235,
+      "mean": 0.00012416129032258064,
+      "median": 0.000118,
+      "std_dev": 5.472543392500026e-05
+    },
+    "extraction_times": {
+      "min": 8e-06,
+      "max": 0.000552,
+      "mean": 0.00016829032258064517,
+      "median": 4.5e-05,
+      "std_dev": 0.00018132442261471326
+    },
+    "boolean_calls": {
+      "total": 143,
+      "mean_per_file": 9.533333333333333,
+      "max_per_file": 25
+    },
+    "ltlf_creations": {
+      "total": 176,
+      "mean_per_file": 11.733333333333333,
+      "max_per_file": 26
+    },
+    "enumeration_times": {
+      "total": 0.021022000000000002,
+      "mean": 0.0016170769230769231,
+      "median": 0.000804,
+      "max": 0.004528
+    }
+  },
+  "performance_metrics": {
+    "success_rate": 1.0,
+    "failure_analysis": {
+      "total_failures": 0,
+      "timeouts": 0,
+      "errors": 0,
+      "timeout_rate": 0.0
+    },
+    "timeout_analysis": {},
+    "efficiency_metrics": {
+      "top_mus_producers": [
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p11.ltl",
+          6
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p13.ltl",
+          5
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p10.ltl",
+          5
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p12.ltl",
+          3
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p15.ltl",
+          2
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p9.ltl",
+          2
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p14.ltl",
+          2
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p4.ltl",
+          1
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p8.ltl",
+          1
+        ],
+        [
+          "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p5.ltl",
+          1
+        ]
+      ],
+      "files_with_no_mus": 2,
+      "mean_muses_per_file": 2.066666666666667
+    }
+  },
+  "file_breakdown": [
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p11.ltl",
+      "success": true,
+      "execution_time": 0.004528,
+      "mus_count": 6,
+      "status": "success",
+      "boolean_calls": 25,
+      "ltlf_creations": 26
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p10.ltl",
+      "success": true,
+      "execution_time": 0.004312,
+      "mus_count": 5,
+      "status": "success",
+      "boolean_calls": 23,
+      "ltlf_creations": 25
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p13.ltl",
+      "success": true,
+      "execution_time": 0.003759,
+      "mus_count": 5,
+      "status": "success",
+      "boolean_calls": 23,
+      "ltlf_creations": 25
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p12.ltl",
+      "success": true,
+      "execution_time": 0.003148,
+      "mus_count": 3,
+      "status": "success",
+      "boolean_calls": 18,
+      "ltlf_creations": 20
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p7.ltl",
+      "success": true,
+      "execution_time": 0.000904,
+      "mus_count": 1,
+      "status": "success",
+      "boolean_calls": 8,
+      "ltlf_creations": 10
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p6.ltl",
+      "success": true,
+      "execution_time": 0.000861,
+      "mus_count": 1,
+      "status": "success",
+      "boolean_calls": 9,
+      "ltlf_creations": 12
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p14.ltl",
+      "success": true,
+      "execution_time": 0.000804,
+      "mus_count": 2,
+      "status": "success",
+      "boolean_calls": 7,
+      "ltlf_creations": 11
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p15.ltl",
+      "success": true,
+      "execution_time": 0.000697,
+      "mus_count": 2,
+      "status": "success",
+      "boolean_calls": 8,
+      "ltlf_creations": 12
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p9.ltl",
+      "success": true,
+      "execution_time": 0.000653,
+      "mus_count": 2,
+      "status": "success",
+      "boolean_calls": 6,
+      "ltlf_creations": 10
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p5.ltl",
+      "success": true,
+      "execution_time": 0.000623,
+      "mus_count": 1,
+      "status": "success",
+      "boolean_calls": 7,
+      "ltlf_creations": 9
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p4.ltl",
+      "success": true,
+      "execution_time": 0.00039,
+      "mus_count": 1,
+      "status": "success",
+      "boolean_calls": 4,
+      "ltlf_creations": 7
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p8.ltl",
+      "success": true,
+      "execution_time": 0.000221,
+      "mus_count": 1,
+      "status": "success",
+      "boolean_calls": 3,
+      "ltlf_creations": 6
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p.ltl",
+      "success": true,
+      "execution_time": 0.000122,
+      "mus_count": 1,
+      "status": "success",
+      "boolean_calls": 2,
+      "ltlf_creations": 3
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p2.ltl",
+      "success": true,
+      "execution_time": 0,
+      "mus_count": 0,
+      "status": "success",
+      "boolean_calls": 0,
+      "ltlf_creations": 0
+    },
+    {
+      "filename": "/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p3.ltl",
+      "success": true,
+      "execution_time": 0,
+      "mus_count": 0,
+      "status": "success",
+      "boolean_calls": 0,
+      "ltlf_creations": 0
+    }
+  ]
+}
