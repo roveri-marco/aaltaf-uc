@@ -98,6 +98,7 @@ protected:
                                       const std::vector<int>& ext_assumptions);
   bool             block_up(const std::vector<int>& mus);
   bool             block_down(const std::vector<int>& assumptions);
+  void             strip_non_ext_ids(std::vector<int>& ids);
   std::vector<int> get_model_assumptions();
   bool             solve_with_assumptions(const std::vector<int>& assumptions);
   void             initialize_bool_solver(const std::vector<int>& ext_assumptions);

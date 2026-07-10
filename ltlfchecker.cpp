@@ -374,16 +374,19 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
                                      / 1e9;
 
         if (!new_mus.empty()) {
+          strip_non_ext_ids(new_mus);
           block_up(new_mus);
-          all_mus.emplace_back(new_mus,
-                               checker_creation_time,
-                               check_time,
-                               mus_extraction_time,
-                               current_bool_calls,
-                               current_ltlf_creations);
+          if (!new_mus.empty()) {
+            all_mus.emplace_back(new_mus,
+                                 checker_creation_time,
+                                 check_time,
+                                 mus_extraction_time,
+                                 current_bool_calls,
+                                 current_ltlf_creations);
 
-          current_bool_calls     = 0;
-          current_ltlf_creations = 0;
+            current_bool_calls     = 0;
+            current_ltlf_creations = 0;
+          }
         }
       } else {
         // Block this satisfying combination
@@ -400,6 +403,29 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
     }
 
     delete bool_solver_;
+
+    // A candidate can be a strict superset of a later-found MUS when the
+    // boolean shrinking stops early (the clause database of the subset
+    // checker under-approximates unsatisfiability): keep only the
+    // inclusion-minimal candidates. This does not lose any MUS, since a
+    // seed equal to a real MUS is never blocked by block_up/block_down.
+    std::vector<MUSInfo> minimal_mus;
+    for (size_t i = 0; i < all_mus.size(); i++) {
+      bool has_strict_subset = false;
+      for (size_t j = 0; j < all_mus.size(); j++) {
+        if (j != i && all_mus[j].mus.size() < all_mus[i].mus.size()
+            && std::includes(all_mus[i].mus.begin(),
+                             all_mus[i].mus.end(),
+                             all_mus[j].mus.begin(),
+                             all_mus[j].mus.end())) {
+          has_strict_subset = true;
+          break;
+        }
+      }
+      if (!has_strict_subset)
+        minimal_mus.push_back(all_mus[i]);
+    }
+    all_mus.swap(minimal_mus);
 
     cout << "\n====== MUSes Summary ======\n";
     cout << "MUS #\tChecker Creation(s)\tCheck Time(s)\t\tMUS Extraction(s)\tBool Calls\tLTLf "
@@ -501,6 +527,18 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
   return all_mus;
 }
 
+// Drop ids that do not correspond to external assumption selectors: the
+// boolean MUS extraction can also return internal solver assumptions
+// (frames, obligations), which are not part of the user-level conjunct set.
+void LTLfChecker::strip_non_ext_ids(std::vector<int>& ids) {
+  std::vector<int> ext_only;
+  for (int id : ids) {
+    if (solver_->get_ass_formula(abs(id)) != NULL)
+      ext_only.push_back(id);
+  }
+  ids.swap(ext_only);
+}
+
 bool LTLfChecker::block_up(const std::vector<int>& mus) {
   std::vector<int> clause;
   if (verbose_)
@@ -553,6 +591,7 @@ std::vector<std::vector<int>> LTLfChecker::get_temporal_mus(int& ltlf_checker_co
   ltlf_checker_count = 0;
   std::vector<std::vector<int>> min_muses;
   std::vector<int>              current_mus = solver_->get_mus({});
+  strip_non_ext_ids(current_mus);
 
   if (current_mus.empty()) {
     return min_muses;
