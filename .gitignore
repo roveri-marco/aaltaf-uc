@@ -12,7 +12,7 @@ ltlparser/ltlf2smv/ltlf2smv
 mus-automation/results/mus_summary_*.json
 mus-automation/results/mus-analysis-results.json
 mus-automation/benchmarks/mus-benchmarks*.txt
-mus-automation/*_out
+mus-automation/**/*_out
 
 # Python
 __pycache__/

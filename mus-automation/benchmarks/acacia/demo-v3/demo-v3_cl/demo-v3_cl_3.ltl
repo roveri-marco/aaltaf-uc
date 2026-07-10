@@ -1,0 +1,13 @@
+rr_r_00000 := (G (F req3));
+rr_r_00001 := (G (F req2));
+rr_r_00002 := (G (F req1));
+rr_r_00003 := (G (cancel -> (X ((! grant3) U go))));
+rr_r_00004 := (G (grant3 -> (X (! grant3))));
+rr_r_00005 := (G (req3 -> (((X grant3) | (X (X grant3))) | (X (X (X grant3))))));
+rr_r_00006 := (G (cancel -> (X ((! grant2) U go))));
+rr_r_00007 := (G (grant2 -> (X (! grant2))));
+rr_r_00008 := (G (req2 -> (((X grant2) | (X (X grant2))) | (X (X (X grant2))))));
+rr_r_00009 := (G (cancel -> (X ((! grant1) U go))));
+rr_r_00010 := (G (grant1 -> (X (! grant1))));
+rr_r_00011 := (G (req1 -> (((X grant1) | (X (X grant1))) | (X (X (X grant1))))));
+rr_r_00012 := (G (cancel -> (X go)));

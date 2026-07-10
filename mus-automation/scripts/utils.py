@@ -246,15 +246,16 @@ def parse_mus_output(output: str) -> Optional[Dict]:
         return None
 
 def get_benchmark_files(directory: str) -> List[str]:
-    """Get list of .ltl files from directory"""
+    """Get list of .ltl files from directory (searched recursively)"""
     ltl_files = []
-    
+
     try:
         if os.path.isdir(directory):
-            for filename in os.listdir(directory):
-                if filename.endswith('.ltl'):
-                    full_path = os.path.abspath(os.path.join(directory, filename))
-                    ltl_files.append(full_path)
+            for root, _, filenames in os.walk(directory):
+                for filename in filenames:
+                    if filename.endswith('.ltl'):
+                        full_path = os.path.abspath(os.path.join(root, filename))
+                        ltl_files.append(full_path)
     except OSError as e:
         print(f"Error reading directory {directory}: {e}")
         return []
