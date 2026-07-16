@@ -34,6 +34,8 @@ def run_tests(args) -> int:
         cmd.extend(['-t', str(args.timeout)])
     if args.memory_limit:
         cmd.extend(['-m', str(args.memory_limit)])
+    if args.retry_failed:
+        cmd.append('--retry-failed')
     if args.verbose:
         cmd.append('-v')
     
@@ -374,6 +376,7 @@ Examples:
     test_parser.add_argument('-l', '--list', help='File containing benchmark list')
     test_parser.add_argument('-t', '--timeout', type=int, help='Timeout per benchmark (seconds)')
     test_parser.add_argument('-m', '--memory-limit', type=int, help='Virtual memory limit per benchmark (GB, default: 4)')
+    test_parser.add_argument('--retry-failed', action='store_true', help='Re-run previously failed benchmarks instead of skipping them')
     test_parser.add_argument('-v', '--verbose', action='store_true', help='Use verbose flags')
     
     # Analyze command

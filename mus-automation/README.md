@@ -32,8 +32,9 @@ python3 mus_automation.py test -d ../examples
 
 ### Batch test from a list file, with custom limits
 ```bash
-# timeout in seconds (-t), virtual memory limit in GB (-m, default 4)
-python3 mus_automation.py test -l rescue-list.txt -t 14400 -m 32
+# timeout in seconds (-t), virtual memory limit in GB (-m, default 4);
+# --retry-failed re-runs benchmarks in the error list instead of skipping them
+python3 mus_automation.py test -l rescue-list.txt -t 14400 -m 32 --retry-failed
 ```
 
 ### Analyze results

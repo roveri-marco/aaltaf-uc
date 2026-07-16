@@ -19,7 +19,7 @@ from utils import (
 )
 
 def run_mus_benchmarks(benchmark_files: List[str], flags: List[str] = None, timeout: int = None,
-                       memory_limit: int = None) -> None:
+                       memory_limit: int = None, retry_failed: bool = False) -> None:
     """
     Run MUS benchmarks
 
@@ -28,6 +28,7 @@ def run_mus_benchmarks(benchmark_files: List[str], flags: List[str] = None, time
         flags: Command flags (default: ["-emus2"])
         timeout: Timeout per benchmark
         memory_limit: Virtual memory limit in bytes (default: config.MAX_VIRTUAL_MEMORY)
+        retry_failed: Re-run benchmarks previously marked as failed instead of skipping them
     """
     if flags is None:
         flags = config.DEFAULT_FLAGS
@@ -76,9 +77,12 @@ def run_mus_benchmarks(benchmark_files: List[str], flags: List[str] = None, time
             continue
             
         if benchmark_file in err:
-            log_message(f"[{processed}/{total_benchmarks}] SKIP: {benchmark_file} (previously failed)")
-            skipped += 1
-            continue
+            if retry_failed:
+                err.discard(benchmark_file)
+            else:
+                log_message(f"[{processed}/{total_benchmarks}] SKIP: {benchmark_file} (previously failed)")
+                skipped += 1
+                continue
         
         # Process benchmark
         log_message(f"[{processed}/{total_benchmarks}] PROCESSING: {benchmark_file}")
@@ -137,6 +141,8 @@ def main():
                        help=f'Timeout per benchmark in seconds (default: {config.DEFAULT_TIMEOUT})')
     parser.add_argument('-m', '--memory-limit', type=int, default=None,
                        help='Virtual memory limit per benchmark in GB (default: 4)')
+    parser.add_argument('--retry-failed', action='store_true',
+                       help='Re-run benchmarks previously marked as failed instead of skipping them')
     parser.add_argument('-v', '--verbose', action='store_true',
                        help='Use verbose aaltaf flags')
     
@@ -192,7 +198,7 @@ def main():
     # Execute benchmarks
     memory_limit = args.memory_limit * 1024**3 if args.memory_limit else None
     try:
-        run_mus_benchmarks(benchmark_files, flags, args.timeout, memory_limit)
+        run_mus_benchmarks(benchmark_files, flags, args.timeout, memory_limit, args.retry_failed)
     except KeyboardInterrupt:
         log_message("Benchmark processing interrupted by user", "WARN")
         sys.exit(1)
