@@ -19,19 +19,22 @@ import config
 # Global flag to track memory limit capability
 _memory_limit_available = None
 
-def test_memory_limit():
+def test_memory_limit(memory_limit: int = None):
     """Test if memory limit can be set and return capability flag"""
     global _memory_limit_available
-    
+
     if _memory_limit_available is not None:
         return _memory_limit_available
-    
+
+    if memory_limit is None:
+        memory_limit = config.MAX_VIRTUAL_MEMORY
+
     try:
         # Get current limit and test setting our target limit
         current_limit = resource.getrlimit(resource.RLIMIT_AS)
-        
+
         # Try to set our target limit
-        resource.setrlimit(resource.RLIMIT_AS, (config.MAX_VIRTUAL_MEMORY, resource.RLIM_INFINITY))
+        resource.setrlimit(resource.RLIMIT_AS, (memory_limit, resource.RLIM_INFINITY))
         
         # Restore original limit
         resource.setrlimit(resource.RLIMIT_AS, current_limit)
@@ -43,10 +46,12 @@ def test_memory_limit():
         _memory_limit_available = False
         return False
 
-def limit_virtual_memory():
+def limit_virtual_memory(memory_limit: int = None):
     """Set memory limit for subprocess execution"""
+    if memory_limit is None:
+        memory_limit = config.MAX_VIRTUAL_MEMORY
     try:
-        resource.setrlimit(resource.RLIMIT_AS, (config.MAX_VIRTUAL_MEMORY, resource.RLIM_INFINITY))
+        resource.setrlimit(resource.RLIMIT_AS, (memory_limit, resource.RLIM_INFINITY))
     except (OSError, ValueError):
         # Silent fail: warning already shown in main process
         pass
@@ -62,23 +67,28 @@ def setup_directories():
     for directory in dirs:
         os.makedirs(directory, exist_ok=True)
 
-def run_aaltaf_mus(benchmark_file: str, flags: List[str] = None, timeout: int = None) -> bool:
+def run_aaltaf_mus(benchmark_file: str, flags: List[str] = None, timeout: int = None,
+                   memory_limit: int = None) -> bool:
     """
     Run aaltaf MUS test on benchmark file
-    
+
     Args:
         benchmark_file: Path to .ltl file
         flags: Command flags (default: ["-emus2"])
         timeout: Timeout in seconds
-        
+        memory_limit: Virtual memory limit in bytes (default: config.MAX_VIRTUAL_MEMORY)
+
     Returns:
         bool: True if successful, False otherwise
     """
     if flags is None:
         flags = ["-emus2"]
-    
+
     if timeout is None:
         timeout = config.DEFAULT_TIMEOUT
+
+    if memory_limit is None:
+        memory_limit = config.MAX_VIRTUAL_MEMORY
     
     # Output file
     output_file = benchmark_file + "_out"
@@ -90,8 +100,8 @@ def run_aaltaf_mus(benchmark_file: str, flags: List[str] = None, timeout: int = 
     print(f"Running: {' '.join(cmd)}")
     
     # Test memory limit capability in main process (shows warning if needed)
-    memory_limit_works = test_memory_limit()
-    
+    memory_limit_works = test_memory_limit(memory_limit)
+
     try:
         # Execute with or without memory limit based on capability
         result = subprocess.run(
@@ -99,7 +109,7 @@ def run_aaltaf_mus(benchmark_file: str, flags: List[str] = None, timeout: int = 
             capture_output=True,
             text=True,
             timeout=timeout,
-            preexec_fn=limit_virtual_memory if memory_limit_works else None
+            preexec_fn=(lambda: limit_virtual_memory(memory_limit)) if memory_limit_works else None
         )
         
         # Write output to file

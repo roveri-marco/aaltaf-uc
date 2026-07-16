@@ -30,6 +30,12 @@ python3 mus_automation.py test -f ../examples/p11.ltl
 python3 mus_automation.py test -d ../examples
 ```
 
+### Batch test from a list file, with custom limits
+```bash
+# timeout in seconds (-t), virtual memory limit in GB (-m, default 4)
+python3 mus_automation.py test -l rescue-list.txt -t 14400 -m 32
+```
+
 ### Analyze results
 
 Basic analysis with summary:

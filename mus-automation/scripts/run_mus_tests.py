@@ -18,21 +18,28 @@ from utils import (
     log_message
 )
 
-def run_mus_benchmarks(benchmark_files: List[str], flags: List[str] = None, timeout: int = None) -> None:
+def run_mus_benchmarks(benchmark_files: List[str], flags: List[str] = None, timeout: int = None,
+                       memory_limit: int = None) -> None:
     """
     Run MUS benchmarks
-    
+
     Args:
         benchmark_files: List of .ltl files to process
-        flags: Command flags (default: ["-emus2"])  
+        flags: Command flags (default: ["-emus2"])
         timeout: Timeout per benchmark
+        memory_limit: Virtual memory limit in bytes (default: config.MAX_VIRTUAL_MEMORY)
     """
     if flags is None:
         flags = config.DEFAULT_FLAGS
-    
+
     if timeout is None:
         timeout = config.DEFAULT_TIMEOUT
-    
+
+    if memory_limit is None:
+        memory_limit = config.MAX_VIRTUAL_MEMORY
+
+    log_message(f"Limits per benchmark: timeout {timeout}s, memory {memory_limit / (1024**3):.0f}GB")
+
     # Setup directories
     setup_directories()
     
@@ -76,7 +83,7 @@ def run_mus_benchmarks(benchmark_files: List[str], flags: List[str] = None, time
         # Process benchmark
         log_message(f"[{processed}/{total_benchmarks}] PROCESSING: {benchmark_file}")
         
-        success = run_aaltaf_mus(benchmark_file, flags, timeout)
+        success = run_aaltaf_mus(benchmark_file, flags, timeout, memory_limit)
         
         # Update state
         if success:
@@ -128,6 +135,8 @@ def main():
                        help='File containing list of benchmarks to process')
     parser.add_argument('-t', '--timeout', type=int, default=config.DEFAULT_TIMEOUT,
                        help=f'Timeout per benchmark in seconds (default: {config.DEFAULT_TIMEOUT})')
+    parser.add_argument('-m', '--memory-limit', type=int, default=None,
+                       help='Virtual memory limit per benchmark in GB (default: 4)')
     parser.add_argument('-v', '--verbose', action='store_true',
                        help='Use verbose aaltaf flags')
     
@@ -181,8 +190,9 @@ def main():
     log_message(f"Found {len(benchmark_files)} benchmark files")
     
     # Execute benchmarks
+    memory_limit = args.memory_limit * 1024**3 if args.memory_limit else None
     try:
-        run_mus_benchmarks(benchmark_files, flags, args.timeout)
+        run_mus_benchmarks(benchmark_files, flags, args.timeout, memory_limit)
     except KeyboardInterrupt:
         log_message("Benchmark processing interrupted by user", "WARN")
         sys.exit(1)
