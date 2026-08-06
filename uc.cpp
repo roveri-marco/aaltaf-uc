@@ -17,6 +17,13 @@ namespace aalta {
   void get_formulas(FILE * file, AaltaFormulaVec & names,
 		    AaltaFormulaVec & formulas,
 		    aalta_formula * & conjunction, bool get_imp) {
+    
+    // names.clear();
+    // formulas.clear();
+    // conjunction = aalta_formula::TRUE();
+
+    // rewind(file);
+    // clearerr(file); 
 
     ltl_formulas * parsed = getASTSF(file);
     conjunction = aalta_formula::TRUE();

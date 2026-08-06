@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug aaltaf",
+            "type": "lldb",  // Changed back to "lldb"
+            "request": "launch",
+            "program": "${workspaceFolder}/aaltaf",
+            "args": ["-emus2", "-f", "examples/p10.ltl"],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build"
+        }
+    ]
+}

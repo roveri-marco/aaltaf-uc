@@ -1,0 +1,16 @@
+filename,success,execution_time,mus_count,boolean_calls,ltlf_creations,status,enumeration_time,parsing_time,preprocessing_time
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p4.ltl,True,0.00039,1,4,7,success,0.00039,1.3e-05,2.2e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p8.ltl,True,0.000221,1,3,6,success,0.000221,9e-06,2e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p12.ltl,True,0.003148,3,18,20,success,0.003148,2.1e-05,4.9e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p5.ltl,True,0.000623,1,7,9,success,0.000623,1.5e-05,2.2e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p15.ltl,True,0.000697,2,8,12,success,0.000697,1.2e-05,1.9e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p13.ltl,True,0.003759,5,23,25,success,0.003759,2.2e-05,3.3e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p.ltl,True,0.000122,1,2,3,success,0.000122,1.3e-05,1.7e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p6.ltl,True,0.000861,1,9,12,success,0.000861,1.7e-05,2.2e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p7.ltl,True,0.000904,1,8,10,success,0.000904,1.6e-05,2.4e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p9.ltl,True,0.000653,2,6,10,success,0.000653,1.2e-05,2.1e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p11.ltl,True,0.004528,6,25,26,success,0.004528,2.4e-05,4.4e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p2.ltl,True,0,0,0,0,success,0,9e-06,1.8e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p3.ltl,True,0,0,0,0,success,0,8e-06,2.2e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p14.ltl,True,0.000804,2,7,11,success,0.000804,1.3e-05,2.9e-05
+/Users/avesanidennis/VSCodeProjects/aaltaf-uc/examples/p10.ltl,True,0.004312,5,23,25,success,0.004312,2.2e-05,4.2e-05
