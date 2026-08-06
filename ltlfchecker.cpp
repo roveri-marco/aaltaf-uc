@@ -297,8 +297,21 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
   double                        first_mus_time =
       std::chrono::duration_cast<std::chrono::nanoseconds>(t_mus_end - t_mus_start).count() / 1e9;
 
+  auto elapsed_since_start = [&t_mus_start]() {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+               std::chrono::high_resolution_clock::now() - t_mus_start)
+               .count()
+           / 1e9;
+  };
+
   if (!initial_muses.empty()) {
     total_ltlf_checker_creations += temporal_mus_ltlf_creations;
+
+    // The lines below are candidates reported as they are discovered: each one
+    // is unsatisfiable for sure, but minimality is only established at the end,
+    // so the summary may drop some of them. Without the closing
+    // "enumeration COMPLETE" line these are partial results.
+    cout << "-- incremental reporting below, fields: index, elapsed s, size, conjuncts\n";
 
     bool_solver_ = new AaltaSolver(verbose_);
 
@@ -315,6 +328,7 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
                            first_mus_time,
                            0,
                            temporal_mus_ltlf_creations);
+      report_mus(all_mus.size(), mus, elapsed_since_start());
       block_up(mus);
     }
 
@@ -383,6 +397,7 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
                                  mus_extraction_time,
                                  current_bool_calls,
                                  current_ltlf_creations);
+            report_mus(all_mus.size(), new_mus, elapsed_since_start());
 
             current_bool_calls     = 0;
             current_ltlf_creations = 0;
@@ -409,6 +424,7 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
     // checker under-approximates unsatisfiability): keep only the
     // inclusion-minimal candidates. This does not lose any MUS, since a
     // seed equal to a real MUS is never blocked by block_up/block_down.
+    size_t               candidates_reported = all_mus.size();
     std::vector<MUSInfo> minimal_mus;
     for (size_t i = 0; i < all_mus.size(); i++) {
       bool has_strict_subset = false;
@@ -436,17 +452,7 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
            << setw(24) << all_mus[i].mus_extraction_time << setw(16) << all_mus[i].bool_solver_calls
            << setw(16) << all_mus[i].ltlf_checker_creations;
 
-      for (size_t j = 0; j < all_mus[i].mus.size(); j++) {
-        aalta_formula* f = solver_->get_ass_formula(abs(all_mus[i].mus[j]));
-        if (f != NULL) {
-          if (all_mus[i].mus[j] < 0)
-            cout << "!";
-          cout << f->to_string();
-          if (j < all_mus[i].mus.size() - 1)
-            cout << " ";
-        }
-      }
-      cout << "\n";
+      cout << mus_to_string(all_mus[i].mus) << "\n";
     }
     cout << endl;
 
@@ -522,6 +528,11 @@ std::vector<MUSInfo> LTLfChecker::enumerate_all_mus_v2(std::vector<aalta_formula
            << "  Mean: " << mean_extract << "  Variance: " << scientific << setprecision(3) << var_extract << "\n";
     }
     cout << endl;
+
+    // Closing marker: if this line is missing the run was cut off by a timeout
+    // or by memory exhaustion, and only the MUS-CANDIDATE lines above are left.
+    cout << "-- enumeration COMPLETE: " << all_mus.size() << " minimal MUS out of "
+         << candidates_reported << " candidates" << endl;
   }
 
   return all_mus;
@@ -537,6 +548,27 @@ void LTLfChecker::strip_non_ext_ids(std::vector<int>& ids) {
       ext_only.push_back(id);
   }
   ids.swap(ext_only);
+}
+
+// Render the user-level conjunct names of a MUS, space separated.
+std::string LTLfChecker::mus_to_string(const std::vector<int>& mus) {
+  std::string out;
+  for (size_t i = 0; i < mus.size(); i++) {
+    aalta_formula* f = solver_->get_ass_formula(abs(mus[i]));
+    if (f == NULL)
+      continue;
+    if (!out.empty())
+      out += " ";
+    if (mus[i] < 0)
+      out += "!";
+    out += f->to_string();
+  }
+  return out;
+}
+
+void LTLfChecker::report_mus(size_t index, const std::vector<int>& mus, double elapsed) {
+  cout << "MUS-CANDIDATE\t" << index << "\t" << fixed << setprecision(6) << elapsed << "\t"
+       << mus.size() << "\t" << mus_to_string(mus) << endl;
 }
 
 bool LTLfChecker::block_up(const std::vector<int>& mus) {

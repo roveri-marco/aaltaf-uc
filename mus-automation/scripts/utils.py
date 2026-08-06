@@ -56,6 +56,14 @@ def limit_virtual_memory(memory_limit: int = None):
         # Silent fail: warning already shown in main process
         pass
 
+def count_mus_candidates(output_file: str) -> int:
+    """Number of MUS candidates aaltaf reported before being stopped"""
+    try:
+        with open(output_file, 'r', errors='replace') as f:
+            return sum(1 for line in f if line.startswith('MUS-CANDIDATE'))
+    except OSError:
+        return 0
+
 def setup_directories():
     """Create necessary directories if they don't exist"""
     dirs = [
@@ -103,51 +111,49 @@ def run_aaltaf_mus(benchmark_file: str, flags: List[str] = None, timeout: int = 
     memory_limit_works = test_memory_limit(memory_limit)
 
     try:
-        # Execute with or without memory limit based on capability
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            preexec_fn=(lambda: limit_virtual_memory(memory_limit)) if memory_limit_works else None
-        )
-        
-        # Write output to file
+        # Stream the output straight to the file instead of capturing it
         with open(output_file, 'w') as f:
-            f.write(result.stdout)
-            if result.stderr:
-                f.write("\n--- STDERR ---\n")
-                f.write(result.stderr)
-        
+            result = subprocess.run(
+                cmd,
+                stdout=f,
+                stderr=subprocess.STDOUT,
+                timeout=timeout,
+                preexec_fn=(lambda: limit_virtual_memory(memory_limit)) if memory_limit_works else None
+            )
+
         # Handle return code
         if result.returncode != 0:
             print(f"WARNING: {benchmark_file} returned code {result.returncode}")
+            found = count_mus_candidates(output_file)
             with open(output_file, 'a') as f:
-                f.write(f"\n--- RETURN CODE: {result.returncode} ---\n")
+                f.write(f"\n--- PARTIAL RESULTS: {found} MUS candidates saved ---\n")
+                f.write(f"--- RETURN CODE: {result.returncode} ---\n")
             return False
         
         print(f"SUCCESS: {benchmark_file}")
         return True
         
     except subprocess.TimeoutExpired:
-        # Timeout handling
+        # Timeout handling: append the markers so the partial output is kept
         print(f"TIMEOUT: {benchmark_file} after {timeout}s")
-        with open(output_file, 'w') as f:
+        found = count_mus_candidates(output_file)
+        with open(output_file, 'a') as f:
+            f.write(f"\n--- PARTIAL RESULTS: {found} MUS candidates saved ---\n")
             f.write(f"TIMEOUT after {timeout} seconds\n")
         return False
-        
+
     except OSError as e:
         # OS error handling
         print(f"OS ERROR: {benchmark_file} - {str(e)}")
-        with open(output_file, 'w') as f:
-            f.write(f"OS ERROR: {str(e)}\n")
+        with open(output_file, 'a') as f:
+            f.write(f"\nOS ERROR: {str(e)}\n")
         return False
-        
+
     except Exception as e:
         # Generic error handling
         print(f"ERROR: {benchmark_file} - {str(e)}")
-        with open(output_file, 'w') as f:
-            f.write(f"GENERIC ERROR: {str(e)}\n")
+        with open(output_file, 'a') as f:
+            f.write(f"\nGENERIC ERROR: {str(e)}\n")
         return False
 
 def parse_mus_output_from_file(output_file: str) -> Optional[Dict]:

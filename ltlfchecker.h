@@ -10,6 +10,7 @@
 
 #include <functional>
 #include <map>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -99,6 +100,8 @@ protected:
   bool             block_up(const std::vector<int>& mus);
   bool             block_down(const std::vector<int>& assumptions);
   void             strip_non_ext_ids(std::vector<int>& ids);
+  std::string      mus_to_string(const std::vector<int>& mus);
+  void             report_mus(size_t index, const std::vector<int>& mus, double elapsed);
   std::vector<int> get_model_assumptions();
   bool             solve_with_assumptions(const std::vector<int>& assumptions);
   void             initialize_bool_solver(const std::vector<int>& ext_assumptions);
